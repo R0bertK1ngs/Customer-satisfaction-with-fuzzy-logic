@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Predicción de Satisfacción - Lógica Difusa</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --accent-color: #e74c3c;
+            --success-color: #27ae60;
+            --warning-color: #f39c12;
+            --dark-color: #34495e;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .main-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            margin: 20px;
+            padding: 30px;
+        }
+
+        .header-section {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header-section::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            animation: pulse 4s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 0.5; }
+            50% { transform: scale(1.1); opacity: 0.8; }
+        }
+
+        .card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            margin-bottom: 20px;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .card-header {
+            background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
+            color: white;
+            border-radius: 15px 15px 0 0 !important;
+            padding: 20px;
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+
+        .stats-card {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            text-align: center;
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            transition: transform 0.3s ease;
+        }
+
+        .stats-card:hover {
+            transform: scale(1.05);
+        }
+
+        .stats-number {
+            font-size: 2.5em;
+            font-weight: bold;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .plot-container {
+            text-align: center;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 15px;
+            margin: 20px 0;
+        }
+
+        .plot-container img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 10px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .table-responsive {
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .table {
+            margin: 0;
+        }
+
+        .table thead th {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border: none;
+            font-weight: 600;
+            padding: 15px;
+        }
+
+        .table tbody td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .table tbody tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        .badge {
+            font-size: 0.9em;
+            padding: 8px 12px;
+            border-radius: 20px;
+        }
+
+        .section-divider {
+            height: 3px;
+            background: linear-gradient(90deg, var(--secondary-color), var(--accent-color));
+            border: none;
+            border-radius: 2px;
+            margin: 40px 0;
+        }
+
+        .analysis-highlight {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin: 20px 0;
+        }
+
+        .membership-function-list {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 15px;
+            margin: 20px 0;
+        }
+
+        .membership-function-item {
+            display: inline-block;
+            background: white;
+            padding: 10px 15px;
+            margin: 5px;
+            border-radius: 25px;
+            border: 2px solid var(--secondary-color);
+            transition: all 0.3s ease;
+        }
+
+        .membership-function-item:hover {
+            background: var(--secondary-color);
+            color: white;
+            transform: scale(1.05);
+        }
+
+        .placeholder-content {
+            background: #f8f9fa;
+            padding: 40px;
+            border-radius: 15px;
+            text-align: center;
+            color: #6c757d;
+        }
+
+        .demo-data {
+            background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%);
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 10px 0;
+        }
+
+        @media (max-width: 768px) {
+            .main-container {
+                margin: 10px;
+                padding: 20px;
+            }
+            
+            .stats-number {
+                font-size: 2em;
+            }
+            
+            .header-section {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="main-container">
+            <!-- Header Section -->
+            <div class="header-section">
+                <h1 class="mb-3">
+                    <i class="fas fa-brain me-3"></i>
+                    Sistema de Predicción de Satisfacción del Cliente
+                </h1>
+                <h4 class="mb-0">Utilizando Lógica Difusa (Fuzzy Logic)</h4>
+                <p class="mt-2 mb-0">Análisis predictivo basado en tiempo de suscripción, frecuencia de uso y tipo de plan</p>
+            </div>
+
+            <!-- Dataset Information -->
+            <div class="row mb-4">
+                <div class="col-lg-3 col-md-6">
+                    <div class="stats-card">
+                        <div class="stats-number">{{ dataset_info.total_records|default:"1,250" }}</div>
+                        <div><i class="fas fa-database me-2"></i>Registros Totales</div>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6">
+                    <div class="stats-card">
+                        <div class="stats-number">{{ dataset_info.columns|length|default:"4" }}</div>
+                        <div><i class="fas fa-columns me-2"></i>Variables</div>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6">
+                    <div class="stats-card">
+                        <div class="stats-number">{{ total_rules|default:"27" }}</div>
+                        <div><i class="fas fa-cogs me-2"></i>Reglas Difusas</div>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6">
+                    <div class="stats-card">
+                        <div class="stats-number">3</div>
+                        <div><i class="fas fa-chart-line me-2"></i>Variables de Entrada</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Membership Functions Section -->
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-wave-square me-2"></i>
+                    Funciones de Membresía del Sistema
+                </div>
+                <div class="card-body">
+                    <div class="plot-container">
+                        <img src="data:image/png;base64,{{ membership_plot }}" alt="Funciones de Membresía" class="img-fluid">
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h5><i class="fas fa-info-circle me-2 text-primary"></i>Variables de Entrada</h5>
+                            <div class="membership-function-list">
+                                <h6>Tiempo de Suscripción:</h6>
+                                {% for func in membership_functions.tiempo %}
+                                <span class="membership-function-item">{{ func }}</span>
+                                {% empty %}
+                                <span class="membership-function-item">Nuevo</span>
+                                <span class="membership-function-item">Regular</span>
+                                <span class="membership-function-item">Veterano</span>
+                                {% endfor %}
+                                
+                                <h6 class="mt-3">Frecuencia de Uso:</h6>
+                                {% for func in membership_functions.frecuencia %}
+                                <span class="membership-function-item">{{ func }}</span>
+                                {% empty %}
+                                <span class="membership-function-item">Baja</span>
+                                <span class="membership-function-item">Media</span>
+                                <span class="membership-function-item">Alta</span>
+                                {% endfor %}
+                                
+                                <h6 class="mt-3">Tipo de Suscripción:</h6>
+                                {% for func in membership_functions.suscripcion %}
+                                <span class="membership-function-item">{{ func }}</span>
+                                {% empty %}
+                                <span class="membership-function-item">Básica</span>
+                                <span class="membership-function-item">Premium</span>
+                                <span class="membership-function-item">Enterprise</span>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <h5><i class="fas fa-target me-2 text-success"></i>Variable de Salida</h5>
+                            <div class="membership-function-list">
+                                <h6>Nivel de Satisfacción:</h6>
+                                {% for func in membership_functions.satisfaccion %}
+                                <span class="membership-function-item">{{ func }}</span>
+                                {% empty %}
+                                <span class="membership-function-item">Insatisfecho</span>
+                                <span class="membership-function-item">Neutral</span>
+                                <span class="membership-function-item">Satisfecho</span>
+                                {% endfor %}
+                            </div>
+                            
+                            <div class="mt-4">
+                                <h6><i class="fas fa-ruler me-2"></i>Rangos de Variables:</h6>
+                                <ul class="list-unstyled">
+                                    <li><strong>Tiempo:</strong> 0-36 meses</li>
+                                    <li><strong>Frecuencia:</strong> 0-50 visitas/mes</li>
+                                    <li><strong>Suscripción:</strong> $8-17 USD</li>
+                                    <li><strong>Satisfacción:</strong> 0-100%</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <hr class="section-divider">
+
+            <!-- Detailed Analysis Section -->
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-search-plus me-2"></i>
+                    Análisis Detallado - Registro #{{ analyzed_record.index|default:"Demo" }}
+                </div>
+                <div class="card-body">
+                    <div class="analysis-highlight">
+                        <div class="row text-center">
+                            <div class="col-md-3">
+                                <h5>{{ analyzed_record.months_diff|default:"18" }}</h5>
+                                <small>Meses de Suscripción</small>
+                            </div>
+                            <div class="col-md-3">
+                                <h5>{{ analyzed_record.frequency|default:"32" }}</h5>
+                                <small>Frecuencia de Uso</small>
+                            </div>
+                            <div class="col-md-3">
+                                <h5>${{ analyzed_record.monthly_revenue|default:"14.99" }}</h5>
+                                <small>Ingreso Mensual</small>
+                            </div>
+                            <div class="col-md-3">
+                                <h5>{{ analyzed_record.predicted_satisfaction|default:"78" }}%</h5>
+                                <small>Satisfacción Predicha</small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="plot-container">
+                        <img src="data:image/png;base64,{{ detailed_plot }}" alt="Análisis Detallado" class="img-fluid">
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6><i class="fas fa-calculator me-2"></i>Detalles del Análisis:</h6>
+                            <ul class="list-group list-group-flush">
+                                <li class="list-group-item d-flex justify-content-between">
+                                    <span>Fuerza Difusa Máxima:</span>
+                                    <span class="badge bg-info">{{ analyzed_record.fuzzy_strength|default:"0.85" }}</span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between">
+                                    <span>Método de Desfuzificación:</span>
+                                    <span class="badge bg-secondary">Centroide</span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between">
+                                    <span>Tipo de Inferencia:</span>
+                                    <span class="badge bg-success">Mamdani</span>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h6><i class="fas fa-lightbulb me-2"></i>Interpretación:</h6>
+                            <div class="alert alert-info">
+                                {% with satisfaction=analyzed_record.predicted_satisfaction|default:78 %}
+                                    {% if satisfaction >= 75 %}
+                                    <strong>Alta Satisfacción:</strong> El cliente muestra un excelente nivel de satisfacción basado en su comportamiento de uso.
+                                    {% elif satisfaction >= 50 %}
+                                    <strong>Satisfacción Media:</strong> El cliente tiene un nivel moderado de satisfacción. Hay oportunidades de mejora.
+                                    {% else %}
+                                    <strong>Baja Satisfacción:</strong> El cliente requiere atención inmediata para mejorar su experiencia.
+                                    {% endif %}
+                                {% endwith %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <hr class="section-divider">
+
+            <!-- Statistics Section -->
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-chart-bar me-2"></i>
+                    Estadísticas del Dataset Completo
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-lg-2 col-md-4 col-sm-6">
+                            <div class="stats-card bg-primary">
+                                <div class="stats-number">{{ statistics.mean|default:"67.5" }}</div>
+                                <div>Media</div>
+                            </div>
+                        </div>
+                        <div class="col-lg-2 col-md-4 col-sm-6">
+                            <div class="stats-card bg-success">
+                                <div class="stats-number">{{ statistics.max|default:"100" }}</div>
+                                <div>Máximo</div>
+                            </div>
+                        </div>
+                        <div class="col-lg-2 col-md-4 col-sm-6">
+                            <div class="stats-card bg-danger">
+                                <div class="stats-number">{{ statistics.min|default:"0" }}</div>
+                                <div>Mínimo</div>
+                            </div>
+                        </div>
+                        <div class="col-lg-2 col-md-4 col-sm-6">
+                            <div class="stats-card bg-warning">
+                                <div class="stats-number">{{ statistics.std|default:"15.8" }}</div>
+                                <div>Desv. Est.</div>
+                            </div>
+                        </div>
+                        <div class="col-lg-2 col-md-4 col-sm-6">
+                            <div class="stats-card bg-info">
+                                <div class="stats-number">{{ statistics.q50|default:"70" }}</div>
+                                <div>Mediana</div>
+                            </div>
+                        </div>
+                        <div class="col-lg-2 col-md-4 col-sm-6">
+                            <div class="stats-card bg-dark">
+                                <div class="stats-number">{{ statistics.q75|default:"85" }}</div>
+                                <div>Q3 (75%)</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sample Data Section -->
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-table me-2"></i>
+                    Muestra de Datos Procesados
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Meses Suscripción</th>
+                                    <th>Frecuencia</th>
+                                    <th>Ingreso Mensual</th>
+                                    <th>Satisfacción Predicha</th>
+                                    <th>Estado</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for record in sample_data %}
+                                <tr>
+                                    <td>{{ forloop.counter }}</td>
+                                    <td>{{ record.Months_diff }}</td>
+                                    <td>{{ record.Frequency }}</td>
+                                    <td>${{ record.Monthly_Revenue|floatformat:2 }}</td>
+                                    <td>
+                                        <span class="badge {% if record.Predicted_Satisfaction >= 75 %}bg-success{% elif record.Predicted_Satisfaction >= 50 %}bg-warning{% else %}bg-danger{% endif %}">
+                                            {{ record.Predicted_Satisfaction }}%
+                                        </span>
+                                    </td>
+                                    <td>
+                                        {% if record.Predicted_Satisfaction >= 75 %}
+                                        <i class="fas fa-smile text-success"></i> Satisfecho
+                                        {% elif record.Predicted_Satisfaction >= 50 %}
+                                        <i class="fas fa-meh text-warning"></i> Moderado
+                                        {% else %}
+                                        <i class="fas fa-frown text-danger"></i> Insatisfecho
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <!-- Datos de demostración -->
+                                <tr>
+                                    <td>1</td>
+                                    <td>24</td>
+                                    <td>45</td>
+                                    <td>$16.99</td>
+                                    <td><span class="badge bg-success">87%</span></td>
+                                    <td><i class="fas fa-smile text-success"></i> Satisfecho</td>
+                                </tr>
+                                <tr>
+                                    <td>2</td>
+                                    <td>12</td>
+                                    <td>28</td>
+                                    <td>$12.99</td>
+                                    <td><span class="badge bg-warning">65%</span></td>
+                                    <td><i class="fas fa-meh text-warning"></i> Moderado</td>
+                                </tr>
+                                <tr>
+                                    <td>3</td>
+                                    <td>6</td>
+                                    <td>15</td>
+                                    <td>$8.99</td>
+                                    <td><span class="badge bg-danger">42%</span></td>
+                                    <td><i class="fas fa-frown text-danger"></i> Insatisfecho</td>
+                                </tr>
+                                <tr>
+                                    <td>4</td>
+                                    <td>30</td>
+                                    <td>38</td>
+                                    <td>$15.99</td>
+                                    <td><span class="badge bg-success">79%</span></td>
+                                    <td><i class="fas fa-smile text-success"></i> Satisfecho</td>
+                                </tr>
+                                <tr>
+                                    <td>5</td>
+                                    <td>18</td>
+                                    <td>22</td>
+                                    <td>$11.99</td>
+                                    <td><span class="badge bg-warning">58%</span></td>
+                                    <td><i class="fas fa-meh text-warning"></i> Moderado</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- System Information -->
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <i class="fas fa-info-circle me-2"></i>
+                            Información del Sistema
+                        </div>
+                        <div class="card-body">
+                            <ul class="list-group list-group-flush">
+                                <li class="list-group-item d-flex justify-content-between">
+                                    <span>Método de Inferencia:</span>
+                                    <span class="badge bg-primary">Mamdani</span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between">
+                                    <span>Desfuzificación:</span>
+                                    <span class="badge bg-secondary">Centroide</span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between">
+                                    <span>Variables de Entrada:</span>
+                                    <span class="badge bg-info">3</span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between">
+                                    <span>Variables de Salida:</span>
+                                    <span class="badge bg-success">1</span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between">
+                                    <span>Total de Reglas:</span>
+                                    <span class="badge bg-warning">{{ total_rules|default:"27" }}</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <i class="fas fa-cogs me-2"></i>
+                            Configuración del Modelo
+                        </div>
+                        <div class="card-body">
+                            <h6>Funciones de Membresía Utilizadas:</h6>
+                            <ul class="list-unstyled">
+                                <li><i class="fas fa-arrow-right me-2 text-primary"></i>Trapezoidal: Para variables con rangos amplios</li>
+                                <li><i class="fas fa-arrow-right me-2 text-success"></i>Triangular: Para variables con puntos óptimos</li>
+                            </ul>
+                            
+                            <h6 class="mt-3">Proceso de Inferencia:</h6>
+                            <ol class="list-group list-group-numbered">
+                                <li class="list-group-item">Fuzzificación de entradas</li>
+                                <li class="list-group-item">Evaluación de reglas difusas</li>
+                                <li class="list-group-item">Agregación de resultados</li>
+                                <li class="list-group-item">Desfuzzificación por centroide</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="text-center mt-5 pt-4 border-top">
+                <p class="text-muted">
+                    <i class="fas fa-brain me-2"></i>
+                    Sistema de Lógica Difusa para Predicción de Satisfacción del Cliente
+                </p>
+                <p class="text-muted small">
+                    Desarrollado con Django y Scikit-Fuzzy | 
+                    <i class="fas fa-clock me-1"></i>Actualizado en tiempo real
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Añadir interactividad
+        document.addEventListener('DOMContentLoaded', function() {
+            // Animación para las tarjetas de estadísticas
+            const statsCards = document.querySelectorAll('.stats-card');
+            statsCards.forEach((card, index) => {
+                setTimeout(() => {
+                    card.style.opacity = '0';
+                    card.style.transform = 'translateY(20px)';
+                    card.style.transition = 'all 0.5s ease';
+                    setTimeout(() => {
+                        card.style.opacity = '1';
+                        card.style.transform = 'translateY(0)';
+                    }, 100);
+                }, index * 200);
+            });
+
+            // Tooltip para elementos con información adicional
+            const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+            const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
+
+            // Efecto de hover en las tarjetas
+            const cards = document.querySelectorAll('.card');
+            cards.forEach(card => {
+                card.addEventListener('mouseenter', function() {
+                    this.style.transform = 'translateY(-5px)';
+                });
+                
+                card.addEventListener('mouseleave', function() {
+                    this.style.transform = 'translateY(0)';
+                });
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="row justify-content-center">
+    <div class="col-md-6">
+      <div class="card shadow border-danger">
+        <div class="card-header bg-danger text-white">
+          <h4 class="mb-0">
+            <i class="fas fa-exclamation-triangle me-2"></i>{{ title }}
+          </h4>
+        </div>
+        <div class="card-body">
+          <div class="alert alert-warning">
+            <i class="fas fa-info-circle me-2"></i>
+            <strong>¡Atención!</strong> Esta acción no se puede deshacer.
+          </div>
+          
+          <p class="mb-4">
+            ¿Estás seguro de que deseas eliminar la función de membresía 
+            <strong>"{{ membership_function.name }}"</strong>?
+          </p>
+          
+          <div class="card mb-3">
+            <div class="card-body">
+              <h6 class="card-title">Detalles de la función:</h6>
+              <ul class="list-unstyled mb-0">
+                <li><strong>Nombre:</strong> {{ membership_function.name }}</li>
+                <li><strong>Tipo:</strong> {{ membership_function.function_type }}</li>
+                <li><strong>Parámetros:</strong> {{ membership_function.parameters }}</li>
+                <li><strong>Variable:</strong> {{ membership_function.variable.name }}</li>
+              </ul>
+            </div>
+          </div>
+          
+          <div class="d-flex justify-content-between">
+            <a href="{% url 'membership_functions' %}" class="btn btn-secondary">
+              <i class="fas fa-arrow-left me-1"></i> Cancelar
+            </a>
+            <form method="post" class="d-inline">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-danger">
+                <i class="fas fa-trash-alt me-1"></i> Eliminar Definitivamente
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
