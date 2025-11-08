@@ -358,8 +358,8 @@
                     <label class="form-label fw-bold">Objetivo de análisis (vista demo)</label>
                     <div class="input-group">
                         <select class="form-select" name="objetivo" onchange="this.form.submit()">
-                        <option value="baja" {% if objetivo == 'baja' %}selected{% endif %}>Baja fidelización (Frec Med)</option>
-                        <option value="alta" {% if objetivo == 'alta' %}selected{% endif %}>Alta fidelización (Frec Agv)</option>
+                        <option value="baja" {% if objetivo == 'baja' %}selected{% endif %}>Baja satisfacción (Frec Med)</option>
+                        <option value="alta" {% if objetivo == 'alta' %}selected{% endif %}>Alta satisfacción (Frec Agv)</option>
                         </select>
                         <button class="btn btn-outline-primary" type="submit">
                         <i class="fa fa-rotate me-1"></i>Actualizar
@@ -380,8 +380,8 @@
                         </div>
                         <div class="col-md-7">
                         <select class="form-select" name="objetivo">
-                            <option value="baja" {% if objetivo == 'baja' %}selected{% endif %}>Baja fidelización (usa Frec Med)</option>
-                            <option value="alta" {% if objetivo == 'alta' %}selected{% endif %}>Alta fidelización (usa Frec Agv)</option>
+                            <option value="baja" {% if objetivo == 'baja' %}selected{% endif %}>Baja satisfacción (usa Frec Med)</option>
+                            <option value="alta" {% if objetivo == 'alta' %}selected{% endif %}>Alta satisfacción (usa Frec Agv)</option>
                         </select>
                         </div>
                         <div class="col-md-5 d-grid">

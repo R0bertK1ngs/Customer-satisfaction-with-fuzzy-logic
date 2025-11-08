@@ -593,7 +593,7 @@
                     currentStep++;
                     
                     if (currentStep < loadingSteps.length) {
-                        setTimeout(updateProgress, 800 + Math.random() * 400); // Tiempo variable para realismo
+                        setTimeout(updateProgress, 300); // Tiempo variable para realismo
                     } else {
                         setTimeout(() => {
                             window.location.href = targetUrl;
