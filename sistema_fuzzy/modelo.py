@@ -1,128 +1,14 @@
+# sistema_fuzzy/modelo.py
 # -*- coding: utf-8 -*-
-"""
-Fuzzy Logic Prototype as a BI Tool
-Predictor de satisfacción del cliente usando lógica difusa
-"""
 
-import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
-import warnings
-warnings.filterwarnings('ignore')
+import pandas as pd
+import csv
 
-# Instalar scikit-fuzzy si no está instalado
-try:
-    import skfuzzy as fuzz
-except ImportError:
-    print("Instalando scikit-fuzzy...")
-    import subprocess
-    subprocess.check_call(["pip", "install", "scikit-fuzzy"])
-    import skfuzzy as fuzz
-
-def load_data(filename="Netflix_Userbase_Frecuencia.csv"):
-    """Cargar el dataset desde la carpeta actual"""
-    try:
-        df = pd.read_csv(filename)
-        print(f"Dataset cargado exitosamente: {df.shape[0]} filas, {df.shape[1]} columnas")
-        return df
-    except FileNotFoundError:
-        print(f"Error: No se encontró el archivo '{filename}' en la carpeta actual")
-        return None
-
-def setup_membership_functions():
-    """Definir universos de discurso y funciones de membresía"""
-    # Definir universos de discurso
-    x_tiempo = np.linspace(0, 36, 200)    # Tiempo de suscripción (meses)
-    x_sub = np.linspace(8, 17, 200)       # Tipo de suscripción (8-17)
-    x_freq = np.linspace(0, 50, 200)      # Frecuencia de uso (visitas/mes)
-    x_sat = np.linspace(0, 100, 200)      # Nivel de satisfacción
-
-    # Definir funciones de membresía
-    membership_functions = {}
-    
-    # Tiempo de suscripción
-    membership_functions['tiempo'] = {
-        'corto': fuzz.trapmf(x_tiempo, [0, 0, 6, 12]),
-        'medio': fuzz.trimf(x_tiempo, [6, 18, 30]),
-        'largo': fuzz.trapmf(x_tiempo, [18, 24, 36, 36])
-    }
-    
-    # Tipo de suscripción
-    membership_functions['suscripcion'] = {
-        'basico': fuzz.trapmf(x_sub, [8, 8, 10, 11]),
-        'estandar': fuzz.trapmf(x_sub, [11, 12, 12, 13]),
-        'premium': fuzz.trapmf(x_sub, [14, 15, 17, 17])
-    }
-    
-    # Frecuencia de uso
-    membership_functions['frecuencia'] = {
-        'baja': fuzz.trapmf(x_freq, [0, 0, 5, 10]),
-        'media': fuzz.trimf(x_freq, [5, 15, 25]),
-        'alta': fuzz.trapmf(x_freq, [20, 30, 50, 50])
-    }
-    
-    # Satisfacción (salida)
-    membership_functions['satisfaccion'] = {
-        'baja': fuzz.trapmf(x_sat, [0, 0, 20, 40]),
-        'media': fuzz.trimf(x_sat, [30, 50, 70]),
-        'alta': fuzz.trapmf(x_sat, [60, 75, 100, 100])
-    }
-    
-    universes = {
-        'tiempo': x_tiempo,
-        'suscripcion': x_sub,
-        'frecuencia': x_freq,
-        'satisfaccion': x_sat
-    }
-    
-    return membership_functions, universes
-
-def plot_membership_functions(membership_functions, universes):
-    """Graficar todas las funciones de membresía"""
-    fig, axs = plt.subplots(4, 1, figsize=(10, 16))
-    
-    # Tiempo de suscripción
-    for label, mf in membership_functions['tiempo'].items():
-        axs[0].plot(universes['tiempo'], mf, label=label.capitalize())
-    axs[0].set_title('Funciones de Membresía - Tiempo de Suscripción')
-    axs[0].set_xlabel('Meses')
-    axs[0].set_ylabel('Grado de Pertenencia')
-    axs[0].legend()
-    axs[0].grid(True)
-    
-    # Tipo de suscripción
-    for label, mf in membership_functions['suscripcion'].items():
-        axs[1].plot(universes['suscripcion'], mf, label=label.capitalize())
-    axs[1].set_title('Funciones de Membresía - Tipo de Suscripción')
-    axs[1].set_xlabel('Valor del Plan ($)')
-    axs[1].set_ylabel('Grado de Pertenencia')
-    axs[1].legend()
-    axs[1].grid(True)
-    
-    # Frecuencia de uso
-    for label, mf in membership_functions['frecuencia'].items():
-        axs[2].plot(universes['frecuencia'], mf, label=f"{label.capitalize()} Frecuencia")
-    axs[2].set_title('Funciones de Membresía - Frecuencia de Uso')
-    axs[2].set_xlabel('Visitas por Mes')
-    axs[2].set_ylabel('Grado de Pertenencia')
-    axs[2].legend()
-    axs[2].grid(True)
-    
-    # Satisfacción
-    for label, mf in membership_functions['satisfaccion'].items():
-        axs[3].plot(universes['satisfaccion'], mf, label=label.capitalize())
-    axs[3].set_title('Funciones de Membresía - Nivel de Satisfacción')
-    axs[3].set_xlabel('Nivel (%)')
-    axs[3].set_ylabel('Grado de Pertenencia')
-    axs[3].legend()
-    axs[3].grid(True)
-    
-    plt.tight_layout()
-    plt.show()
-
-# Funciones de membresía manuales para cálculos individuales
+# =========================
+#  Membresías (manuales)
+# =========================
 def trapmf(x, a, b, c, d):
-    """Función de membresía trapezoidal"""
     if x <= a or x >= d:
         return 0.0
     elif a < x < b:
@@ -133,7 +19,6 @@ def trapmf(x, a, b, c, d):
         return (d - x) / (d - c)
 
 def trimf(x, a, b, c):
-    """Función de membresía triangular"""
     if x <= a or x >= c:
         return 0.0
     elif a < x < b:
@@ -141,250 +26,320 @@ def trimf(x, a, b, c):
     else:  # b <= x < c
         return (c - x) / (c - b)
 
-def calculate_membership_degrees(tm, fq, subv):
-    """Calcular grados de pertenencia para un registro"""
-    degrees = {
-        'short': trapmf(tm, 0, 0, 6, 12),
-        'medium': trimf(tm, 6, 18, 30),
-        'long': trapmf(tm, 18, 24, 36, 36),
-        'lowf': trapmf(fq, 0, 0, 5, 10),
-        'medf': trimf(fq, 5, 15, 25),
-        'highf': trapmf(fq, 20, 30, 50, 50),
-        'basic': trimf(subv, 9, 10, 11),
-        'standard': trimf(subv, 10, 12, 14),
-        'premium': trimf(subv, 13, 15, 17)
-    }
-    return degrees
-
+# =========================
+#  Reglas (27) Mamdani
+# =========================
 def define_fuzzy_rules():
-    """Definir las reglas difusas del sistema"""
     rules = [
-        # Frecuencia baja
-        (['short', 'basic', 'lowf'], ('low', [0, 0, 20, 40])),
-        (['short', 'standard', 'lowf'], ('low', [0, 0, 20, 40])),
-        (['short', 'premium', 'lowf'], ('low', [0, 0, 20, 40])),
-        (['medium', 'basic', 'lowf'], ('low', [0, 0, 20, 40])),
-        (['medium', 'standard', 'lowf'], ('low', [0, 0, 20, 40])),
-        (['medium', 'premium', 'lowf'], ('low', [0, 0, 20, 40])),
-        (['long', 'basic', 'lowf'], ('medium', [30, 50, 70])),
-        (['long', 'standard', 'lowf'], ('medium', [30, 50, 70])),
-        (['long', 'premium', 'lowf'], ('medium', [30, 50, 70])),
+        # lowf
+        (['short', 'basic', 'lowf'],   ('low',    [0, 0, 20, 40])),
+        (['short', 'standard', 'lowf'],('low',    [0, 0, 20, 40])),
+        (['short', 'premium', 'lowf'], ('low',    [0, 0, 20, 40])),
 
-        # Frecuencia media
-        (['short', 'basic', 'medf'], ('low', [0, 0, 20, 40])),
-        (['short', 'standard', 'medf'], ('low', [0, 0, 20, 40])),
-        (['short', 'premium', 'medf'], ('low', [0, 0, 20, 40])),
-        (['medium', 'basic', 'medf'], ('medium', [30, 50, 70])),
-        (['medium', 'standard', 'medf'], ('medium', [30, 50, 70])),
-        (['medium', 'premium', 'medf'], ('medium', [30, 50, 70])),
-        (['long', 'basic', 'medf'], ('medium', [30, 50, 70])),
-        (['long', 'standard', 'medf'], ('medium', [30, 50, 70])),
-        (['long', 'premium', 'medf'], ('medium', [30, 50, 70])),
+        (['medium','basic', 'lowf'],   ('low',    [0, 0, 20, 40])),
+        (['medium','standard','lowf'], ('low',    [0, 0, 20, 40])),
+        (['medium','premium','lowf'],  ('low',    [0, 0, 20, 40])),
 
-        # Frecuencia alta
-        (['short', 'basic', 'highf'], ('medium', [30, 50, 70])),
-        (['short', 'standard', 'highf'], ('medium', [30, 50, 70])),
-        (['short', 'premium', 'highf'], ('medium', [30, 50, 70])),
-        (['medium', 'basic', 'highf'], ('high', [60, 75, 100, 100])),
-        (['medium', 'standard', 'highf'], ('high', [60, 75, 100, 100])),
-        (['medium', 'premium', 'highf'], ('high', [60, 75, 100, 100])),
-        (['long', 'basic', 'highf'], ('high', [60, 75, 100, 100])),
-        (['long', 'standard', 'highf'], ('high', [60, 75, 100, 100])),
-        (['long', 'premium', 'highf'], ('high', [60, 75, 100, 100])),
+        (['long',  'basic', 'lowf'],   ('medium', [30, 50, 70])),
+        (['long',  'standard','lowf'], ('medium', [30, 50, 70])),
+        (['long',  'premium','lowf'],  ('medium', [30, 50, 70])),
+
+        # medf
+        (['short', 'basic', 'medf'],   ('low',    [0, 0, 20, 40])),
+        (['short', 'standard','medf'], ('low',    [0, 0, 20, 40])),
+        (['short', 'premium','medf'],  ('low',    [0, 0, 20, 40])),
+
+        (['medium','basic', 'medf'],   ('medium', [30, 50, 70])),
+        (['medium','standard','medf'], ('medium', [30, 50, 70])),
+        (['medium','premium','medf'],  ('medium', [30, 50, 70])),
+
+        (['long',  'basic', 'medf'],   ('medium', [30, 50, 70])),
+        (['long',  'standard','medf'], ('medium', [30, 50, 70])),
+        (['long',  'premium','medf'],  ('medium', [30, 50, 70])),
+
+        # highf
+        (['short', 'basic', 'highf'],   ('medium', [30, 50, 70])),
+        (['short', 'standard','highf'], ('medium', [30, 50, 70])),
+        (['short', 'premium','highf'],  ('medium', [30, 50, 70])),
+
+        (['medium','basic', 'highf'],   ('high',   [60, 75, 100, 100])),
+        (['medium','standard','highf'], ('high',   [60, 75, 100, 100])),
+        (['medium','premium','highf'],  ('high',   [60, 75, 100, 100])),
+
+        (['long',  'basic', 'highf'],   ('high',   [60, 75, 100, 100])),
+        (['long',  'standard','highf'], ('high',   [60, 75, 100, 100])),
+        (['long',  'premium','highf'],  ('high',   [60, 75, 100, 100])),
     ]
     return rules
 
+# =========================
+#  Grados de membresía
+# =========================
+def calculate_membership_degrees(tm, fq, subv):
+    """
+    tm: Months diff (meses de suscripción)
+    fq: Frecuencia mensual (según objetivo: Frec Med o Frec Agv)
+    subv: Monthly Revenue (10/12/15)
+    """
+    return {
+        # Tiempo de suscripción
+        'short':   trapmf(tm, 0, 0, 6, 12),
+        'medium':  trimf(tm, 6, 18, 30),
+        'long':    trapmf(tm, 18, 24, 36, 36),
+        # Frecuencia (visitas/mes)
+        'lowf':    trapmf(fq, 0, 0, 5, 10),
+        'medf':    trimf(fq, 5, 15, 25),
+        'highf':   trapmf(fq, 20, 30, 50, 50),
+        # Plan via precio
+        'basic':   trimf(subv, 9, 10, 11),
+        'standard':trimf(subv, 10, 12, 14),
+        'premium': trimf(subv, 13, 15, 17),
+    }
+
+# =========================
+#  Inferencia Mamdani
+# =========================
 def apply_fuzzy_inference(tm, fq, subv, rules):
-    """Aplicar inferencia difusa para un registro"""
+    """
+    Retorna:
+      - result: score defuzz (centroide) 0-100
+      - max_strength: máxima fuerza (min de antecedentes) usada en agregación
+    """
     degrees = calculate_membership_degrees(tm, fq, subv)
-    x_sat = np.arange(0, 101, 1)
-    
-    # Agregación
+    x_sat = np.arange(0, 101, 1)  # universo salida
+    # MF salida (Colab final: baja = [0,0,25,40], media = [30,50,70], alta = [60,75,100,100])
+    sat_low  = lambda x: trapmf(x, 0, 0, 25, 40)
+    sat_med  = lambda x: trimf(x, 30, 50, 70)
+    sat_high = lambda x: trapmf(x, 60, 75, 100, 100)
+
     agg = np.zeros_like(x_sat, dtype=float)
     max_strength = 0.0
-    
-    for ants, (_, params) in rules:
+
+    for ants, (ctype, params) in rules:
+        # fuerza de la regla (min de antecedentes)
         strength = min(degrees[ants[0]], degrees[ants[1]], degrees[ants[2]])
-        if strength > 0:
-            mf_vals = [trapmf(x, *params) if len(params) == 4 else trimf(x, *params) for x in x_sat]
-            agg = np.maximum(agg, np.minimum(strength, mf_vals))
-            max_strength = max(max_strength, strength)
-    
-    # Desfuzificación por centroide
+        if strength <= 0:
+            continue
+
+        # consecuente segun params (trimf si 3; trapmf si 4)
+        if len(params) == 3:
+            mf_vals = np.array([trimf(x, *params) for x in x_sat])
+        else:
+            mf_vals = np.array([trapmf(x, *params) for x in x_sat])
+
+        # recorte por implicación min y agregación max
+        agg = np.maximum(agg, np.minimum(strength, mf_vals))
+        max_strength = max(max_strength, strength)
+
+    # defuzz centroide
     if agg.sum() == 0:
         result = np.nan
     else:
-        result = np.sum(x_sat * agg) / np.sum(agg)
-    
-    return result, max_strength, agg
+        result = float(np.sum(x_sat * agg) / np.sum(agg))
+    return result, max_strength
 
-def analyze_single_record(df, record_index=14):
-    """Analizar un registro específico y mostrar gráficos detallados"""
-    if record_index >= len(df):
-        print(f"Error: El índice {record_index} está fuera del rango del dataset")
-        return
-    
-    row = df.iloc[record_index]
-    print(f"\n=== ANÁLISIS DEL REGISTRO #{record_index + 1} ===")
-    print("Valores obtenidos del CSV:")
-    for col in row.index:
-        print(f"  {col}: {row[col]}")
-    
-    tm = row['Months_diff']
-    fq = row['Frequency']
-    subv = row['Monthly Revenue']
-    
-    rules = define_fuzzy_rules()
-    result, max_strength, agg = apply_fuzzy_inference(tm, fq, subv, rules)
-    
-    print(f"\nNivel de satisfacción predicho: {round(result, 2)}%")
-    print(f"Fuerza difusa máxima: {round(max_strength, 3)}")
-    
-    # Gráficos detallados
-    plot_detailed_analysis(tm, fq, subv, agg, result)
-
-def plot_detailed_analysis(tm, fq, subv, agg, result):
-    """Crear gráficos detallados del análisis"""
-    # Gráfico de tiempo de suscripción
-    x_tm = np.linspace(0, 40, 400)
-    deg_tm = {
-        'short': trapmf(tm, 0, 0, 6, 12),
-        'medium': trimf(tm, 6, 18, 30),
-        'long': trapmf(tm, 18, 24, 36, 36),
+# =========================
+#  Etiquetado lingüístico
+# =========================
+def get_satisfaction_label(value):
+    low_deg  = trapmf(value, 0, 0, 25, 40)
+    med_deg  = trimf(value, 30, 50, 70)
+    high_deg = trapmf(value, 60, 75, 100, 100)
+    degrees = {
+        "Satisfaccion Baja":  low_deg,
+        "Satisfaccion Media": med_deg,
+        "Satisfaccion Alta":  high_deg,
     }
-    
-    plt.figure(figsize=(15, 12))
-    
-    plt.subplot(2, 2, 1)
-    plt.plot(x_tm, [trapmf(x, 0, 0, 6, 12) for x in x_tm], label='Corto')
-    plt.plot(x_tm, [trimf(x, 6, 18, 30) for x in x_tm], label='Medio')
-    plt.plot(x_tm, [trapmf(x, 18, 24, 36, 36) for x in x_tm], label='Largo')
-    plt.axvline(tm, color='red', linestyle='--', label=f'Valor: {tm:.2f}')
-    plt.title("Tiempo de Suscripción (Months_diff)")
-    plt.xlabel("Meses")
-    plt.ylabel("Grado de pertenencia")
-    plt.legend()
-    plt.grid(True)
-    
-    # Gráfico de frecuencia
-    x_fq = np.linspace(0, 50, 400)
-    plt.subplot(2, 2, 2)
-    plt.plot(x_fq, [trapmf(x, 0, 0, 5, 10) for x in x_fq], label='Baja')
-    plt.plot(x_fq, [trimf(x, 5, 15, 25) for x in x_fq], label='Media')
-    plt.plot(x_fq, [trapmf(x, 20, 30, 50, 50) for x in x_fq], label='Alta')
-    plt.axvline(fq, color='red', linestyle='--', label=f'Valor: {fq:.2f}')
-    plt.title("Frecuencia de Uso")
-    plt.xlabel("Veces por mes")
-    plt.ylabel("Grado de pertenencia")
-    plt.legend()
-    plt.grid(True)
-    
-    # Gráfico de suscripción
-    x_mv = np.linspace(8, 18, 400)
-    plt.subplot(2, 2, 3)
-    plt.plot(x_mv, [trimf(x, 9, 10, 11) for x in x_mv], label='Básico')
-    plt.plot(x_mv, [trimf(x, 10, 12, 14) for x in x_mv], label='Estándar')
-    plt.plot(x_mv, [trimf(x, 13, 15, 17) for x in x_mv], label='Premium')
-    plt.axvline(subv, color='red', linestyle='--', label=f'Valor: {subv:.2f}')
-    plt.title("Tipo de Suscripción (Monthly Revenue)")
-    plt.xlabel("Precio ($)")
-    plt.ylabel("Grado de pertenencia")
-    plt.legend()
-    plt.grid(True)
-    
-    # Gráfico de salida agregada
-    x_sat = np.arange(0, 101, 1)
-    sat_low = fuzz.trapmf(x_sat, [0, 0, 25, 40])
-    sat_med = fuzz.trimf(x_sat, [30, 50, 70])
-    sat_high = fuzz.trapmf(x_sat, [60, 75, 100, 100])
-    
-    plt.subplot(2, 2, 4)
-    plt.plot(x_sat, sat_low, label='Baja', linestyle='--', alpha=0.7)
-    plt.plot(x_sat, sat_med, label='Media', linestyle='--', alpha=0.7)
-    plt.plot(x_sat, sat_high, label='Alta', linestyle='--', alpha=0.7)
-    plt.fill_between(x_sat, np.zeros_like(x_sat), agg, alpha=0.6, color='blue', label='Salida agregada')
-    if not np.isnan(result):
-        plt.axvline(result, color='red', linestyle='-', linewidth=2, label=f'Centroide: {round(result, 2)}%')
-    plt.title("Salida Difusa: Nivel de Satisfacción")
-    plt.xlabel("Nivel de Satisfacción (%)")
-    plt.ylabel("Grado de pertenencia")
-    plt.legend()
-    plt.grid(True)
-    
-    plt.tight_layout()
-    plt.show()
+    return max(degrees, key=degrees.get)
 
-def predict_all_dataset(df):
-    """Realizar predicción para todo el dataset"""
-    print("\n=== PREDICCIÓN PARA TODO EL DATASET ===")
-    
+# =========================
+#  Helpers extracción datos
+# =========================
+def _get_from_record(record, *names, default=None):
+    """Obtiene el primer nombre de columna existente (case-sensitive) del registro/serie/dict."""
+    if hasattr(record, "get"):
+        get = record.get
+    elif isinstance(record, pd.Series):
+        get = record.__getitem__
+    else:
+        # dict-like fallback
+        get = lambda k: record[k]
+
+    for n in names:
+        if isinstance(record, pd.Series):
+            if n in record.index:
+                return record[n]
+        else:
+            if n in record:
+                return get(n)
+    return default
+
+def _select_frequency(record, objetivo):
+    """
+    objetivo: 'baja' -> usa 'Frec Med'
+              'alta' -> usa 'Frec Agv'
+    fallback: 'Frequency' si existiera (compat)
+    """
+    if objetivo == "baja":
+        val = _get_from_record(record, "Frec Med", "Frec_Med", default=None)
+    else:  # "alta"
+        val = _get_from_record(record, "Frec Agv", "Frec_Agv", default=None)
+
+    if val is None:
+        val = _get_from_record(record, "Frequency", default=0.0)
+    return float(val)
+
+# =========================
+#  API pública
+# =========================
+def evaluate_single(record, objetivo="baja"):
+    """
+    record: dict o pd.Series con al menos:
+      - 'Months diff' (o 'Months_diff')
+      - 'Monthly Revenue' (o 'Monthly_Revenue')
+      - 'Frec Med' y/o 'Frec Agv' (o 'Frequency' como fallback)
+    objetivo: 'baja' | 'alta'  (elige mediana vs promedio)
+    """
+    tm   = float(_get_from_record(record, "Months diff", "Months_diff", default=0.0))
+    fq   = _select_frequency(record, objetivo)
+    subv = float(_get_from_record(record, "Monthly Revenue", "Monthly_Revenue", default=10.0))
+
     rules = define_fuzzy_rules()
-    satisfactions = []
-    strengths = []
-    
-    print("Procesando registros...")
-    for i, (_, row) in enumerate(df.iterrows()):
-        tm = row['Months_diff']
-        fq = row['Frequency']
-        subv = row['Monthly Revenue']
-        
-        result, max_strength, _ = apply_fuzzy_inference(tm, fq, subv, rules)
-        
-        satisfactions.append(round(result, 2) if not np.isnan(result) else 0)
-        strengths.append(round(max_strength, 3))
-        
-        if (i + 1) % 100 == 0:
-            print(f"Procesados {i + 1} registros...")
-    
-    # Crear nuevo DataFrame con resultados
-    df_result = df.copy()
-    df_result["Predicted_Satisfaction"] = satisfactions
-    df_result["Fuzzy_Strength"] = strengths
-    
-    # Guardar resultados
-    output_filename = "salida_con_satisfaccion.csv"
-    df_result.to_csv(output_filename, index=False)
-    
-    print(f"\nProceso completado exitosamente!")
-    print(f"Archivo guardado como: '{output_filename}'")
-    print(f"Total de registros procesados: {len(df_result)}")
-    
-    # Mostrar estadísticas básicas
-    print(f"\n=== ESTADÍSTICAS DE SATISFACCIÓN PREDICHA ===")
-    satisfaction_stats = df_result["Predicted_Satisfaction"].describe()
-    print(satisfaction_stats)
-    
-    return df_result
+    score, strength = apply_fuzzy_inference(tm, fq, subv, rules)
 
-def main():
-    """Función principal"""
-    print("=== SISTEMA DE PREDICCIÓN DE SATISFACCIÓN CON LÓGICA DIFUSA ===")
-    
-    # Cargar datos
-    df = load_data()
-    if df is None:
-        return
-    
-    print(f"\nPrimeras 5 filas del dataset:")
-    print(df.head())
-    
-    # Configurar funciones de membresía
-    membership_functions, universes = setup_membership_functions()
-    
-    # Mostrar gráficos de funciones de membresía
-    print("\nMostrando funciones de membresía...")
-    plot_membership_functions(membership_functions, universes)
-    
-    # Analizar un registro específico (registro 15, índice 14)
-    analyze_single_record(df, record_index=14)
-    
-    # Predecir para todo el dataset
-    df_result = predict_all_dataset(df)
-    
-    print(f"\n=== PROCESO COMPLETADO ===")
-    print(f"Últimas 5 filas con predicciones:")
-    print(df_result[['Months_diff', 'Frequency', 'Monthly Revenue', 
-                     'Predicted_Satisfaction', 'Fuzzy_Strength']].tail())
+    if np.isnan(score):
+        label = "Sin información"
+        score_out = 0.0
+        strength_out = 0.0
+    else:
+        label = get_satisfaction_label(score)
+        score_out = round(score, 2)
+        strength_out = round(float(strength), 3)
 
-if __name__ == "__main__":
-    main()
+    return {
+        "Predicted_Satisfaction": score_out,
+        "Fuzzy_Strength": strength_out,
+        "Satisfaction_Label": label,
+        # opcional: eco de entradas usadas
+        "Inputs": {"Months diff": tm, "Freq used": fq, "Monthly Revenue": subv, "Objetivo": objetivo},
+    }
+
+def evaluate_df(df: pd.DataFrame, objetivo="baja") -> pd.DataFrame:
+    """
+    Devuelve una copia del DataFrame con columnas agregadas:
+      - Predicted_Satisfaction
+      - Fuzzy_Strength
+      - Satisfaction_Label
+    Usa 'Frec Med' para objetivo='baja' y 'Frec Agv' para objetivo='alta'.
+    """
+    rules = define_fuzzy_rules()
+    x_sat = np.arange(0, 101, 1)  # (solo para garantizar consistencia si deseas usarlo luego)
+
+    results_score = []
+    results_strength = []
+    results_label = []
+
+    for _, row in df.iterrows():
+        tm   = float(_get_from_record(row, "Months diff", "Months_diff", default=0.0))
+        fq   = _select_frequency(row, objetivo)
+        subv = float(_get_from_record(row, "Monthly Revenue", "Monthly_Revenue", default=10.0))
+
+        score, strength = apply_fuzzy_inference(tm, fq, subv, rules)
+        if np.isnan(score):
+            score_val = 0.0
+            strength_val = 0.0
+            label = "Sin información"
+        else:
+            score_val = round(float(score), 2)
+            strength_val = round(float(strength), 3)
+            label = get_satisfaction_label(score_val)
+
+        results_score.append(score_val)
+        results_strength.append(strength_val)
+        results_label.append(label)
+
+    out = df.copy()
+    out["Predicted_Satisfaction"] = results_score
+    out["Fuzzy_Strength"] = results_strength
+    out["Satisfaction_Label"] = results_label
+    return out
+
+# ======== Entrada CSV (file-like) y salida CSV ========
+
+def _read_uploaded_csv(file_obj):
+    """
+    Lee un CSV subido desde el front (InMemoryUploadedFile, TemporaryUploadedFile, file-like).
+    Intenta UTF-8/',' y fallback a ';'/decimal=','.
+    Devuelve un DataFrame.
+    """
+    import pandas as pd
+    file_obj.seek(0)
+    try:
+        # Caso estándar: UTF-8, separador coma
+        return pd.read_csv(file_obj)
+    except Exception:
+        file_obj.seek(0)
+        try:
+            # Fallback común en ES/LA: separador ';', decimales ','
+            return pd.read_csv(file_obj, sep=';', decimal=',', encoding='utf-8')
+        except Exception:
+            file_obj.seek(0)
+            # Último intento: intentar sin encoding explícito
+            return pd.read_csv(file_obj, sep=';', decimal=',')
+
+def evaluate_file(file_obj, objetivo="baja"):
+    """
+    Procesa un archivo CSV subido desde el front y devuelve un DataFrame
+    enriquecido con:
+      - Predicted_Satisfaction (0–100)
+      - Fuzzy_Strength
+      - Satisfaction_Label (Baja/Media/Alta, vía MF)
+    objetivo:
+      - 'baja' -> usa 'Frec Med'
+      - 'alta' -> usa 'Frec Agv'
+    """
+    df_in = _read_uploaded_csv(file_obj)
+    df_out = evaluate_df(df_in, objetivo=objetivo)
+    return df_out
+
+def dataframe_to_csv_bytes(
+    df: pd.DataFrame,
+    latam_strings=True,          # <- para "32,12"
+    comma_sep_with_quotes=True,  # <- separador coma + valores entre comillas si llevan coma decimal
+    filename_prefix='salida_con_satisfaccion'
+):
+    """
+    Genera CSV:
+      - Si latam_strings=True: convierte Predicted_Satisfaction y Fuzzy_Strength a 'xx,yy' (str)
+      - Si comma_sep_with_quotes=True: usa sep=',' y cita valores con coma decimal ("32,12")
+        (esto reproduce el formato de tu captura de Excel).
+    Retorna (filename, bytes)
+    """
+    import io, datetime
+
+    out_df = df.copy()
+    if latam_strings:
+        # convierte solo estas dos columnas a 'xx,yy'
+        for col in ["Predicted_Satisfaction", "Fuzzy_Strength"]:
+            if col in out_df.columns:
+                out_df[col] = out_df[col].map(lambda s: str(s).replace('.', ',') if pd.notnull(s) else s)
+
+    sep = ','
+    quoting = csv.QUOTE_MINIMAL if comma_sep_with_quotes else csv.QUOTE_NONE
+
+    buf = io.StringIO()
+    out_df.to_csv(
+        buf,
+        index=False,
+        sep=sep,
+        quoting=quoting,   # <- esto hará "32,12" cuando lleve coma
+        quotechar='"'
+    )
+    content = buf.getvalue().encode('utf-8')
+
+    ts = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
+    filename = f"{filename_prefix}_{ts}.csv"
+    return filename, content
+
+
+# Fin del archivo sistema_fuzzy/modelo.py

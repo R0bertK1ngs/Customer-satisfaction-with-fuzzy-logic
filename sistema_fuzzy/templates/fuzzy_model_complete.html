@@ -1,3 +1,5 @@
+{% load dict_extras %}
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -234,6 +236,14 @@
                 <p class="mt-2 mb-0">Análisis predictivo basado en tiempo de suscripción, frecuencia de uso y tipo de plan</p>
             </div>
 
+            {% if error %}
+            <div class="alert alert-danger mb-4" role="alert">
+                <i class="fa fa-triangle-exclamation me-2"></i>
+                {{ error }}
+            </div>
+            {% endif %}
+
+
             <!-- Dataset Information -->
             <div class="row mb-4">
                 <div class="col-lg-3 col-md-6">
@@ -300,8 +310,8 @@
                                 <span class="membership-function-item">{{ func }}</span>
                                 {% empty %}
                                 <span class="membership-function-item">Básica</span>
+                                <span class="membership-function-item">Estandar</span>
                                 <span class="membership-function-item">Premium</span>
-                                <span class="membership-function-item">Enterprise</span>
                                 {% endfor %}
                             </div>
                         </div>
@@ -333,7 +343,63 @@
             </div>
 
             <hr class="section-divider">
+            
+            <!-- === Controles: objetivo y carga de CSV === -->
+            <div class="card mt-3">
+            <div class="card-header">
+                <i class="fas fa-sliders me-2"></i>
+                Ejecutar modelo con tus datos
+            </div>
+            <div class="card-body">
+                <div class="row g-4">
+                <!-- A) Cambiar objetivo (afecta la demo renderizada en la página) -->
+                <div class="col-md-6">
+                    <form method="get" action="{% url 'fuzzy_model_complete' %}">
+                    <label class="form-label fw-bold">Objetivo de análisis (vista demo)</label>
+                    <div class="input-group">
+                        <select class="form-select" name="objetivo" onchange="this.form.submit()">
+                        <option value="baja" {% if objetivo == 'baja' %}selected{% endif %}>Baja fidelización (Frec Med)</option>
+                        <option value="alta" {% if objetivo == 'alta' %}selected{% endif %}>Alta fidelización (Frec Agv)</option>
+                        </select>
+                        <button class="btn btn-outline-primary" type="submit">
+                        <i class="fa fa-rotate me-1"></i>Actualizar
+                        </button>
+                    </div>
+                    <small class="text-muted">Esto no sube archivos; solo actualiza la demo mostrada con el dataset base.</small>
+                    </form>
+                </div>
 
+                <!-- B) Subir CSV y descargar enriquecido -->
+                <div class="col-md-6">
+                    <form method="post" action="{% url 'fuzzy_upload' %}" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <label class="form-label fw-bold">Procesar tu CSV y descargar resultados</label>
+                    <div class="row g-2">
+                        <div class="col-12">
+                        <input class="form-control" type="file" name="file" accept=".csv" required>
+                        </div>
+                        <div class="col-md-7">
+                        <select class="form-select" name="objetivo">
+                            <option value="baja" {% if objetivo == 'baja' %}selected{% endif %}>Baja fidelización (usa Frec Med)</option>
+                            <option value="alta" {% if objetivo == 'alta' %}selected{% endif %}>Alta fidelización (usa Frec Agv)</option>
+                        </select>
+                        </div>
+                        <div class="col-md-5 d-grid">
+                        <button class="btn btn-primary" type="submit">
+                            <i class="fa fa-download me-2"></i>Procesar y descargar CSV
+                        </button>
+                        </div>
+                    </div>
+                    <small class="text-muted d-block mt-1">
+                        El CSV de salida usa separador coma y decimales "xx,yy" entre comillas (compatibles con Excel LATAM).
+                    </small>
+                    </form>
+                </div>
+                </div>
+            </div>
+            </div>
+            <hr class="section-divider">
+            
             <!-- Detailed Analysis Section -->
             <div class="card">
                 <div class="card-header">
@@ -465,77 +531,48 @@
                                 <tr>
                                     <th>#</th>
                                     <th>Meses Suscripción</th>
-                                    <th>Frecuencia</th>
+                                    <th>Frecuencia ({% if objetivo == 'baja' %}Frec Med{% else %}Frec Agv{% endif %})</th>
                                     <th>Ingreso Mensual</th>
                                     <th>Satisfacción Predicha</th>
                                     <th>Estado</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {% for record in sample_data %}
-                                <tr>
-                                    <td>{{ forloop.counter }}</td>
-                                    <td>{{ record.Months_diff }}</td>
-                                    <td>{{ record.Frequency }}</td>
-                                    <td>${{ record.Monthly_Revenue|floatformat:2 }}</td>
-                                    <td>
-                                        <span class="badge {% if record.Predicted_Satisfaction >= 75 %}bg-success{% elif record.Predicted_Satisfaction >= 50 %}bg-warning{% else %}bg-danger{% endif %}">
-                                            {{ record.Predicted_Satisfaction }}%
-                                        </span>
-                                    </td>
-                                    <td>
-                                        {% if record.Predicted_Satisfaction >= 75 %}
-                                        <i class="fas fa-smile text-success"></i> Satisfecho
-                                        {% elif record.Predicted_Satisfaction >= 50 %}
-                                        <i class="fas fa-meh text-warning"></i> Moderado
-                                        {% else %}
-                                        <i class="fas fa-frown text-danger"></i> Insatisfecho
-                                        {% endif %}
-                                    </td>
-                                </tr>
-                                {% empty %}
-                                <!-- Datos de demostración -->
-                                <tr>
-                                    <td>1</td>
-                                    <td>24</td>
-                                    <td>45</td>
-                                    <td>$16.99</td>
-                                    <td><span class="badge bg-success">87%</span></td>
-                                    <td><i class="fas fa-smile text-success"></i> Satisfecho</td>
-                                </tr>
-                                <tr>
-                                    <td>2</td>
-                                    <td>12</td>
-                                    <td>28</td>
-                                    <td>$12.99</td>
-                                    <td><span class="badge bg-warning">65%</span></td>
-                                    <td><i class="fas fa-meh text-warning"></i> Moderado</td>
-                                </tr>
-                                <tr>
-                                    <td>3</td>
-                                    <td>6</td>
-                                    <td>15</td>
-                                    <td>$8.99</td>
-                                    <td><span class="badge bg-danger">42%</span></td>
-                                    <td><i class="fas fa-frown text-danger"></i> Insatisfecho</td>
-                                </tr>
-                                <tr>
-                                    <td>4</td>
-                                    <td>30</td>
-                                    <td>38</td>
-                                    <td>$15.99</td>
-                                    <td><span class="badge bg-success">79%</span></td>
-                                    <td><i class="fas fa-smile text-success"></i> Satisfecho</td>
-                                </tr>
-                                <tr>
-                                    <td>5</td>
-                                    <td>18</td>
-                                    <td>22</td>
-                                    <td>$11.99</td>
-                                    <td><span class="badge bg-warning">58%</span></td>
-                                    <td><i class="fas fa-meh text-warning"></i> Moderado</td>
-                                </tr>
-                                {% endfor %}
+                            {% for record in sample_data %}
+                            <tr>
+                                <td>{{ forloop.counter }}</td>
+                                <td>{{ record|get_item:"Months diff" }}</td>
+                                <td>
+                                {% if objetivo == 'baja' %}
+                                    {{ record|get_item:"Frec Med" }}
+                                {% else %}
+                                    {{ record|get_item:"Frec Agv" }}
+                                {% endif %}
+                                </td>
+                                <td>${{ record|get_item:"Monthly Revenue"|floatformat:2 }}</td>
+
+                                <td>
+                                <span class="badge {% if record.Predicted_Satisfaction >= 75 %}bg-success{% elif record.Predicted_Satisfaction >= 50 %}bg-warning{% else %}bg-danger{% endif %}">
+                                    {{ record.Predicted_Satisfaction }}%
+                                </span>
+                                </td>
+                                <td>
+                                {% if record.Predicted_Satisfaction >= 75 %}
+                                <i class="fas fa-smile text-success"></i> Satisfecho
+                                {% elif record.Predicted_Satisfaction >= 50 %}
+                                <i class="fas fa-meh text-warning"></i> Moderado
+                                {% else %}
+                                <i class="fas fa-frown text-danger"></i> Insatisfecho
+                                {% endif %}
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="6" class="text-center text-muted py-4">
+                                No hay datos para mostrar.
+                                </td>
+                            </tr>
+                            {% endfor %}
                             </tbody>
                         </table>
                     </div>

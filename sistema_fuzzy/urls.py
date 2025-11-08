@@ -39,4 +39,8 @@ urlpatterns = [
     
     # Actividad y logs
     path('activity-log/', views.activity_log, name='activity_log'),
+    
+    #Archivo csv de salida
+    path('fuzzy-upload/', views.upload_and_predict, name='fuzzy_upload'),
+
 ]
