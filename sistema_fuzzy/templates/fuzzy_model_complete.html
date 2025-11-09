@@ -353,7 +353,7 @@
             <div class="card-body">
                 <div class="row g-4">
                 <!-- A) Cambiar objetivo (afecta la demo renderizada en la página) -->
-                <div class="col-md-6">
+                {% comment %} <div class="col-md-6">
                     <form method="get" action="{% url 'fuzzy_model_complete' %}">
                     <label class="form-label fw-bold">Objetivo de análisis (vista demo)</label>
                     <div class="input-group">
@@ -367,33 +367,35 @@
                     </div>
                     <small class="text-muted">Esto no sube archivos; solo actualiza la demo mostrada con el dataset base.</small>
                     </form>
-                </div>
-
+                </div> {% endcomment %}
                 <!-- B) Subir CSV y descargar enriquecido -->
-                <div class="col-md-6">
-                    <form method="post" action="{% url 'fuzzy_upload' %}" enctype="multipart/form-data">
+                <div class="col-md-12">
+                <form method="post" action="{% url 'fuzzy_upload' %}" enctype="multipart/form-data">
                     {% csrf_token %}
                     <label class="form-label fw-bold">Procesar tu CSV y descargar resultados</label>
-                    <div class="row g-2">
-                        <div class="col-12">
+
+                    <div class="row align-items-center">
+                    <!-- Archivo a la izquierda -->
+                    <div class="col-md-6 mb-2 mb-md-0">
                         <input class="form-control" type="file" name="file" accept=".csv" required>
-                        </div>
-                        <div class="col-md-7">
-                        <select class="form-select" name="objetivo">
-                            <option value="baja" {% if objetivo == 'baja' %}selected{% endif %}>Baja satisfacción (usa Frec Med)</option>
-                            <option value="alta" {% if objetivo == 'alta' %}selected{% endif %}>Alta satisfacción (usa Frec Agv)</option>
-                        </select>
-                        </div>
-                        <div class="col-md-5 d-grid">
-                        <button class="btn btn-primary" type="submit">
-                            <i class="fa fa-download me-2"></i>Procesar y descargar CSV
-                        </button>
-                        </div>
                     </div>
-                    <small class="text-muted d-block mt-1">
-                        El CSV de salida usa separador coma y decimales "xx,yy" entre comillas (compatibles con Excel LATAM).
+
+                    <!-- Select + botón a la derecha -->
+                    <div class="col-md-6 d-flex justify-content-end align-items-center gap-2">
+                        <select class="form-select w-auto" name="objetivo" aria-label="Objetivo de análisis">
+                        <option value="baja" {% if objetivo == 'baja' %}selected{% endif %}>Baja satisfacción (usa Frec Med)</option>
+                        <option value="alta" {% if objetivo == 'alta' %}selected{% endif %}>Alta satisfacción (usa Frec Agv)</option>
+                        </select>
+                        <button class="btn btn-primary" type="submit">
+                        <i class="fa fa-download me-2"></i>Procesar y descargar CSV
+                        </button>
+                    </div>
+                    </div>
+
+                    <small class="text-muted d-block mt-2">
+                    El CSV de salida usa separador coma y decimales "xx,yy" entre comillas (compatibles con Excel LATAM).
                     </small>
-                    </form>
+                </form>
                 </div>
                 </div>
             </div>
