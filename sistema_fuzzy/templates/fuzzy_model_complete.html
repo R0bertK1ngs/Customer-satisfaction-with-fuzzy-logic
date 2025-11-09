@@ -333,7 +333,7 @@
                                 <ul class="list-unstyled">
                                     <li><strong>Tiempo:</strong> 0-36 meses</li>
                                     <li><strong>Frecuencia:</strong> 0-50 visitas/mes</li>
-                                    <li><strong>Suscripción:</strong> $8-17 USD</li>
+                                    <li><strong>Suscripción:</strong> $10-15 USD</li>
                                     <li><strong>Satisfacción:</strong> 0-100%</li>
                                 </ul>
                             </div>
@@ -500,11 +500,11 @@
                     <div class="alert alert-info">
                         {% with s=analyzed_record.predicted_satisfaction %}
                         {% if s >= 75 %}
-                            <strong>Alta Satisfacción:</strong> …
+                            <strong>Alta Satisfacción:</strong> El cliente presenta un nivel de satisfacción alto, con respecto a la frecuencia que usa la plataforma.
                         {% elif s >= 50 %}
-                            <strong>Satisfacción Media:</strong> …
+                            <strong>Satisfacción Media:</strong> El cliente presenta un nivel de satisfacción moderado, con un uso moderado de la aplicación.
                         {% else %}
-                            <strong>Baja Satisfacción:</strong> …
+                            <strong>Baja Satisfacción:</strong> El cliente podría estar insatisfecho, debido a una baja frecuencia de uso.
                         {% endif %}
                         {% endwith %}
                     </div>
@@ -521,7 +521,7 @@
 
             <hr class="section-divider">
 
-            <!-- Statistics Section -->
+            {% comment %} <!-- Statistics Section -->
             <div class="card">
                 <div class="card-header">
                     <i class="fas fa-chart-bar me-2"></i>
@@ -567,7 +567,7 @@
                         </div>
                     </div>
                 </div>
-            </div>
+            </div> {% endcomment %}
 
             <!-- Sample Data Section -->
             <div class="card">
