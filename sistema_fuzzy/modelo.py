@@ -3,28 +3,18 @@
 
 import numpy as np
 import pandas as pd
+import skfuzzy as fuzz
 import csv
 
 # =========================
 #  Membresías (manuales)
 # =========================
 def trapmf(x, a, b, c, d):
-    if x <= a or x >= d:
-        return 0.0
-    elif a < x < b:
-        return (x - a) / (b - a)
-    elif b <= x <= c:
-        return 1.0
-    else:  # c < x < d
-        return (d - x) / (d - c)
+    return float(fuzz.trapmf(np.array([x], dtype=float), [a, b, c, d])[0])
 
 def trimf(x, a, b, c):
-    if x <= a or x >= c:
-        return 0.0
-    elif a < x < b:
-        return (x - a) / (b - a)
-    else:  # b <= x < c
-        return (c - x) / (c - b)
+    return float(fuzz.trimf(np.array([x], dtype=float), [a, b, c])[0])
+
 
 # =========================
 #  Reglas (27) Mamdani

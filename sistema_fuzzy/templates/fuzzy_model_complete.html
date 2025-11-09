@@ -404,71 +404,120 @@
             
             <!-- Detailed Analysis Section -->
             <div class="card">
-                <div class="card-header">
-                    <i class="fas fa-search-plus me-2"></i>
-                    Análisis Detallado - Registro #{{ analyzed_record.index|default:"Demo" }}
+            <div class="card-header d-flex align-items-center justify-content-between flex-wrap">
+                <div>
+                <i class="fas fa-search-plus me-2"></i>
+                Análisis Detallado
+                {% if analyzed_record %}
+                    <small class="text-muted ms-2">(Registro #{{ analyzed_record.index }})</small>
+                {% endif %}
                 </div>
-                <div class="card-body">
-                    <div class="analysis-highlight">
-                        <div class="row text-center">
-                            <div class="col-md-3">
-                                <h5>{{ analyzed_record.months_diff|default:"18" }}</h5>
-                                <small>Meses de Suscripción</small>
-                            </div>
-                            <div class="col-md-3">
-                                <h5>{{ analyzed_record.frequency|default:"32" }}</h5>
-                                <small>Frecuencia de Uso</small>
-                            </div>
-                            <div class="col-md-3">
-                                <h5>${{ analyzed_record.monthly_revenue|default:"14.99" }}</h5>
-                                <small>Ingreso Mensual</small>
-                            </div>
-                            <div class="col-md-3">
-                                <h5>{{ analyzed_record.predicted_satisfaction|default:"78" }}%</h5>
-                                <small>Satisfacción Predicha</small>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="plot-container">
-                        <img src="data:image/png;base64,{{ detailed_plot }}" alt="Análisis Detallado" class="img-fluid">
-                    </div>
-                    
-                    <div class="row">
-                        <div class="col-md-6">
-                            <h6><i class="fas fa-calculator me-2"></i>Detalles del Análisis:</h6>
-                            <ul class="list-group list-group-flush">
-                                <li class="list-group-item d-flex justify-content-between">
-                                    <span>Fuerza Difusa Máxima:</span>
-                                    <span class="badge bg-info">{{ analyzed_record.fuzzy_strength|default:"0.85" }}</span>
-                                </li>
-                                <li class="list-group-item d-flex justify-content-between">
-                                    <span>Método de Desfuzificación:</span>
-                                    <span class="badge bg-secondary">Centroide</span>
-                                </li>
-                                <li class="list-group-item d-flex justify-content-between">
-                                    <span>Tipo de Inferencia:</span>
-                                    <span class="badge bg-success">Mamdani</span>
-                                </li>
-                            </ul>
-                        </div>
-                        <div class="col-md-6">
-                            <h6><i class="fas fa-lightbulb me-2"></i>Interpretación:</h6>
-                            <div class="alert alert-info">
-                                {% with satisfaction=analyzed_record.predicted_satisfaction|default:78 %}
-                                    {% if satisfaction >= 75 %}
-                                    <strong>Alta Satisfacción:</strong> El cliente muestra un excelente nivel de satisfacción basado en su comportamiento de uso.
-                                    {% elif satisfaction >= 50 %}
-                                    <strong>Satisfacción Media:</strong> El cliente tiene un nivel moderado de satisfacción. Hay oportunidades de mejora.
-                                    {% else %}
-                                    <strong>Baja Satisfacción:</strong> El cliente requiere atención inmediata para mejorar su experiencia.
-                                    {% endif %}
-                                {% endwith %}
-                            </div>
-                        </div>
-                    </div>
-                </div>
+
+                <!-- Formulario de análisis detallado -->
+                <form class="d-flex gap-2 mt-2 mt-md-0" method="post" action="{% url 'fuzzy_model_complete' %}" enctype="multipart/form-data">
+                {% csrf_token %}
+                <input type="hidden" name="objetivo" value="{{ objetivo }}">
+
+                <!-- Subir CSV: al elegir archivo auto-envía el form para habilitar el combo -->
+                <input
+                    class="form-control form-control-sm"
+                    type="file"
+                    name="file"
+                    accept=".csv"
+                    {% if not using_uploaded %}required{% endif %}
+                    onchange="this.form.submit()"
+                >
+
+                <!-- Combo de User ID: se habilita solo si ya hay CSV procesado -->
+                <select class="form-select form-select-sm" name="user_id" {% if not using_uploaded %}disabled{% endif %}>
+                    {% if using_uploaded %}
+                    <option value="">-- Elegir User ID --</option>
+                    {% for uid in user_ids %}
+                        <option value="{{ uid }}" {% if uid == selected_user_id %}selected{% endif %}>{{ uid }}</option>
+                    {% endfor %}
+                    {% else %}
+                    <option value="">(Sube un CSV para habilitar)</option>
+                    {% endif %}
+                </select>
+
+                <!-- Botón Analizar: activo solo si hay CSV procesado -->
+                <button class="btn btn-sm btn-primary" type="submit" {% if not using_uploaded %}disabled{% endif %}>
+                    <i class="fa fa-chart-line me-1"></i> Analizar
+                </button>
+                </form>
             </div>
+
+            <div class="card-body">
+                {% if analyzed_record %}
+                <!-- KPIs del registro -->
+                <div class="analysis-highlight">
+                    <div class="row text-center">
+                    <div class="col-md-3">
+                        <h5>{{ analyzed_record.months_diff }}</h5>
+                        <small>Meses de Suscripción</small>
+                    </div>
+                    <div class="col-md-3">
+                        <h5>{{ analyzed_record.frequency }}</h5>
+                        <small>Frecuencia de Uso</small>
+                    </div>
+                    <div class="col-md-3">
+                        <h5>${{ analyzed_record.monthly_revenue }}</h5>
+                        <small>Ingreso Mensual</small>
+                    </div>
+                    <div class="col-md-3">
+                        <h5>{{ analyzed_record.predicted_satisfaction }}%</h5>
+                        <small>Satisfacción Predicha</small>
+                    </div>
+                    </div>
+                </div>
+
+                <!-- Gráfico estilo Colab -->
+                <div class="plot-container">
+                    <img src="data:image/png;base64,{{ detailed_plot }}" alt="Análisis Detallado" class="img-fluid">
+                </div>
+
+                <!-- Interpretación -->
+                <div class="row">
+                    <div class="col-md-6">
+                    <h6><i class="fas fa-calculator me-2"></i>Detalles del Análisis:</h6>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item d-flex justify-content-between">
+                        <span>Fuerza Difusa Máxima:</span>
+                        <span class="badge bg-info">{{ analyzed_record.fuzzy_strength }}</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between">
+                        <span>Método de Desfuzificación:</span>
+                        <span class="badge bg-secondary">Centroide</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between">
+                        <span>Tipo de Inferencia:</span>
+                        <span class="badge bg-success">Mamdani</span>
+                        </li>
+                    </ul>
+                    </div>
+                    <div class="col-md-6">
+                    <h6><i class="fas fa-lightbulb me-2"></i>Interpretación:</h6>
+                    <div class="alert alert-info">
+                        {% with s=analyzed_record.predicted_satisfaction %}
+                        {% if s >= 75 %}
+                            <strong>Alta Satisfacción:</strong> …
+                        {% elif s >= 50 %}
+                            <strong>Satisfacción Media:</strong> …
+                        {% else %}
+                            <strong>Baja Satisfacción:</strong> …
+                        {% endif %}
+                        {% endwith %}
+                    </div>
+                    </div>
+                </div>
+                {% else %}
+                <div class="placeholder-content">
+                    Sube un CSV, elige un <strong>User ID</strong> y pulsa <em>Analizar</em> para ver este panel.
+                </div>
+                {% endif %}
+            </div>
+            </div>
+
 
             <hr class="section-divider">
 
@@ -529,30 +578,23 @@
                 <div class="card-body">
                     <div class="table-responsive">
                         <table class="table table-striped table-hover">
-                            <thead>
-                                <tr>
-                                    <th>#</th>
-                                    <th>Meses Suscripción</th>
-                                    <th>Frecuencia ({% if objetivo == 'baja' %}Frec Med{% else %}Frec Agv{% endif %})</th>
-                                    <th>Ingreso Mensual</th>
-                                    <th>Satisfacción Predicha</th>
-                                    <th>Estado</th>
-                                </tr>
+                           <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Meses Suscripción</th>
+                                <th>Frecuencia ({% if objetivo == 'baja' %}Frec Med{% else %}Frec Agv{% endif %})</th>
+                                <th>Ingreso Mensual</th>
+                                <th>Satisfacción Predicha</th>
+                                <th>Estado</th>
+                            </tr>
                             </thead>
                             <tbody>
                             {% for record in sample_data %}
                             <tr>
                                 <td>{{ forloop.counter }}</td>
-                                <td>{{ record|get_item:"Months diff" }}</td>
-                                <td>
-                                {% if objetivo == 'baja' %}
-                                    {{ record|get_item:"Frec Med" }}
-                                {% else %}
-                                    {{ record|get_item:"Frec Agv" }}
-                                {% endif %}
-                                </td>
-                                <td>${{ record|get_item:"Monthly Revenue"|floatformat:2 }}</td>
-
+                                <td>{{ record.Months_diff }}</td>
+                                <td>{{ record.Frequency_Selected }}</td>
+                                <td>${{ record.Monthly_Revenue|floatformat:2 }}</td>
                                 <td>
                                 <span class="badge {% if record.Predicted_Satisfaction >= 75 %}bg-success{% elif record.Predicted_Satisfaction >= 50 %}bg-warning{% else %}bg-danger{% endif %}">
                                     {{ record.Predicted_Satisfaction }}%
@@ -570,12 +612,11 @@
                             </tr>
                             {% empty %}
                             <tr>
-                                <td colspan="6" class="text-center text-muted py-4">
-                                No hay datos para mostrar.
-                                </td>
+                                <td colspan="6" class="text-center text-muted py-4">No hay datos para mostrar.</td>
                             </tr>
                             {% endfor %}
                             </tbody>
+
                         </table>
                     </div>
                 </div>
