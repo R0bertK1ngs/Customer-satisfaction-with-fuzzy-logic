@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Dashboard de Lógica Difusa - Modelo Mamdani{% endblock %}</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Chart.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
+    {% block extra_css %}
+    <style>
+        :root {
+            --primary-color: #667eea;
+            --secondary-color: #764ba2;
+            --accent-color: #f093fb;
+            --dark-color: #2c3e50;
+            --light-color: #ecf0f1;
+            --success-color: #27ae60;
+            --warning-color: #f39c12;
+            --danger-color: #e74c3c;
+            --info-color: #3498db;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            min-height: 100vh;
+            color: var(--dark-color);
+        }
+
+        .navbar-custom {
+            background: rgba(255, 255, 255, 0.95) !important;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.5rem;
+            color: var(--dark-color) !important;
+        }
+
+        .main-container {
+            padding: 2rem 0;
+        }
+
+        .card-custom {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: none;
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .card-custom:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .card-header-custom {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border-radius: 20px 20px 0 0 !important;
+            border: none;
+            padding: 1.5rem;
+        }
+
+        .card-header-custom h5 {
+            margin: 0;
+            font-weight: 600;
+        }
+
+        .fuzzy-input-section {
+            background: linear-gradient(135deg, var(--info-color), var(--primary-color));
+        }
+
+        .membership-section {
+            background: linear-gradient(135deg, var(--success-color), #2ecc71);
+        }
+
+        .rules-section {
+            background: linear-gradient(135deg, var(--warning-color), #e67e22);
+        }
+
+        .output-section {
+            background: linear-gradient(135deg, var(--danger-color), #c0392b);
+        }
+
+        .btn-fuzzy {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            border: none;
+            border-radius: 25px;
+            padding: 0.75rem 2rem;
+            color: white;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-fuzzy:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+            color: white;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin: 1rem 0;
+        }
+
+        .parameter-input {
+            border: 2px solid #e9ecef;
+            border-radius: 15px;
+            padding: 0.75rem 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .parameter-input:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+        }
+
+        .membership-function {
+            background: rgba(52, 152, 219, 0.1);
+            border-left: 4px solid var(--info-color);
+            padding: 1rem;
+            margin: 0.5rem 0;
+            border-radius: 0 10px 10px 0;
+        }
+
+        .rule-item {
+            background: rgba(241, 196, 15, 0.1);
+            border-left: 4px solid var(--warning-color);
+            padding: 1rem;
+            margin: 0.5rem 0;
+            border-radius: 0 10px 10px 0;
+        }
+
+        .result-box {
+            background: rgba(231, 76, 60, 0.1);
+            border-left: 4px solid var(--danger-color);
+            padding: 1.5rem;
+            border-radius: 0 15px 15px 0;
+            text-align: center;
+        }
+
+        .result-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--danger-color);
+        }
+
+        .stats-card {
+            text-align: center;
+            padding: 1.5rem;
+        }
+
+        .stats-number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+
+        .stats-label {
+            color: #7f8c8d;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .sidebar {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.8s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .loading-spinner {
+            display: none;
+            text-align: center;
+            padding: 2rem;
+        }
+
+        @media (max-width: 768px) {
+            .main-container {
+                padding: 1rem;
+            }
+            
+            .card-custom {
+                margin-bottom: 1rem;
+            }
+        }
+    </style>
+    {% endblock %}
+</head>
+
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-custom fixed-top">
+        <div class="container">
+            <a class="navbar-brand" href="{% url 'dashboard' %}">
+                <i class="fas fa-brain me-2"></i>
+                {% block nav_title %}Sistema de Lógica Difusa{% endblock %}
+            </a>
+            
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'dashboard' %}">
+                            <i class="fas fa-tachometer-alt me-1"></i>Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'membership_functions' %}">
+                            <i class="fas fa-wave-square me-1"></i>Funciones de Membresía
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'fuzzy_rules' %}">
+                            <i class="fas fa-list-ul me-1"></i>Reglas Difusas
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                    <a a class="nav-link" href="{% url 'fuzzy_model_complete' %}" id="startSimulationBtn" class="btn btn-light btn-lg px-4 py-3 rounded-pill">
+                        
+                            <i class="fas fa-play-circle me-1"></i>Simulación
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="main-container">
+        <div class="container">
+            <!-- Page Header -->
+            {% block page_header %}
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card card-custom fade-in">
+                        <div class="card-body text-center py-4">
+                            <h1 class="display-4 mb-3">
+                                <i class="fas fa-cogs me-3"></i>
+                                Dashboard de Lógica Difusa
+                            </h1>
+                            <p class="lead text-muted">
+                                Sistema de Inferencia Difusa basado en el Modelo Mamdani
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endblock %}
+
+            <!-- Alert Messages -->
+            {% if messages %}
+                {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                {% endfor %}
+            {% endif %}
+
+                <!-- Main Content Area -->
+                <div class="col-lg-9">
+                    {% block main_content %}
+                    <div class="row">
+                        <!-- Input Variables -->
+                        <div class="col-lg-6 mb-4">
+                            <div class="card card-custom fade-in">
+                                <div class="card-header card-header-custom fuzzy-input-section">
+                                    <h5>
+                                        <i class="fas fa-sign-in-alt me-2"></i>
+                                        Variables de Entrada
+                                    </h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="chart-container">
+                                        <canvas id="inputChart"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Membership Functions -->
+                        <div class="col-lg-6 mb-4">
+                            <div class="card card-custom fade-in">
+                                <div class="card-header card-header-custom membership-section">
+                                    <h5>
+                                        <i class="fas fa-wave-square me-2"></i>
+                                        Funciones de Membresía
+                                    </h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="chart-container">
+                                        <canvas id="membershipChart"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Fuzzy Rules -->
+                        <div class="col-lg-6 mb-4">
+                            <div class="card card-custom fade-in">
+                                <div class="card-header card-header-custom rules-section">
+                                    <h5>
+                                        <i class="fas fa-list-ul me-2"></i>
+                                        Reglas Difusas Activas
+                                    </h5>
+                                </div>
+                                <div class="card-body">
+                                    {% block fuzzy_rules %}
+                                    <div class="rule-item">
+                                        <strong>Regla 1:</strong> SI Variable1 es BAJO Y Variable2 es ALTO ENTONCES Salida es MEDIO
+                                    </div>
+                                    <div class="rule-item">
+                                        <strong>Regla 2:</strong> SI Variable1 es ALTO Y Variable2 es BAJO ENTONCES Salida es ALTO
+                                    </div>
+                                    {% endblock %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Output -->
+                        <div class="col-lg-6 mb-4">
+                            <div class="card card-custom fade-in">
+                                <div class="card-header card-header-custom output-section">
+                                    <h5>
+                                        <i class="fas fa-sign-out-alt me-2"></i>
+                                        Resultado de Inferencia
+                                    </h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="result-box">
+                                        <div class="result-value">{{ fuzzy_result|default:"--" }}</div>
+                                        <div class="mt-2 text-muted">Valor Difuso Final</div>
+                                    </div>
+                                    
+                                    <div class="chart-container mt-3">
+                                        <canvas id="outputChart"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endblock %}
+                </div>
+            </div>
+
+            <!-- Additional Content Blocks -->
+            {% block extra_content %}{% endblock %}
+        </div>
+    </div>
+
+    <!-- Loading Spinner -->
+    <div class="loading-spinner" id="loadingSpinner">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Cargando...</span>
+        </div>
+        <p class="mt-2">Procesando cálculos difusos...</p>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    
+    {% block extra_js %}
+    <script>
+        // Configuración base para los gráficos
+        Chart.defaults.font.family = "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif";
+        Chart.defaults.color = '#2c3e50';
+
+        // Gráfico de Variables de Entrada
+        const inputCtx = document.getElementById('inputChart').getContext('2d');
+        const inputChart = new Chart(inputCtx, {
+            type: 'line',
+            data: {
+                labels: ['0', '20', '40', '60', '80', '100'],
+                datasets: [{
+                    label: 'Variable 1',
+                    data: [0, 0.2, 0.6, 0.8, 0.4, 0],
+                    borderColor: '#3498db',
+                    backgroundColor: 'rgba(52, 152, 219, 0.1)',
+                    tension: 0.4
+                }, {
+                    label: 'Variable 2',
+                    data: [0, 0.4, 0.8, 0.6, 0.2, 0],
+                    borderColor: '#e74c3c',
+                    backgroundColor: 'rgba(231, 76, 60, 0.1)',
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 1
+                    }
+                }
+            }
+        });
+
+        // Gráfico de Funciones de Membresía
+        const membershipCtx = document.getElementById('membershipChart').getContext('2d');
+        const membershipChart = new Chart(membershipCtx, {
+            type: 'line',
+            data: {
+                labels: ['0', '10', '20', '30', '40', '50', '60', '70', '80', '90', '100'],
+                datasets: [{
+                    label: 'Bajo',
+                    data: [1, 0.8, 0.6, 0.4, 0.2, 0, 0, 0, 0, 0, 0],
+                    borderColor: '#27ae60',
+                    backgroundColor: 'rgba(39, 174, 96, 0.1)',
+                    tension: 0.4
+                }, {
+                    label: 'Medio',
+                    data: [0, 0, 0.2, 0.4, 0.6, 0.8, 1, 0.8, 0.6, 0.4, 0.2],
+                    borderColor: '#f39c12',
+                    backgroundColor: 'rgba(243, 156, 18, 0.1)',
+                    tension: 0.4
+                }, {
+                    label: 'Alto',
+                    data: [0, 0, 0, 0, 0, 0, 0.2, 0.4, 0.6, 0.8, 1],
+                    borderColor: '#e74c3c',
+                    backgroundColor: 'rgba(231, 76, 60, 0.1)',
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 1
+                    }
+                }
+            }
+        });
+
+        // Gráfico de Salida
+        const outputCtx = document.getElementById('outputChart').getContext('2d');
+        const outputChart = new Chart(outputCtx, {
+            type: 'line',
+            data: {
+                labels: ['0', '10', '20', '30', '40', '50', '60', '70', '80', '90', '100'],
+                datasets: [{
+                    label: 'Resultado Difuso',
+                    data: [0, 0.1, 0.3, 0.5, 0.7, 0.9, 0.7, 0.5, 0.3, 0.1, 0],
+                    borderColor: '#9b59b6',
+                    backgroundColor: 'rgba(155, 89, 182, 0.2)',
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 1
+                    }
+                }
+            }
+        });
+
+        // Manejo del formulario
+        document.getElementById('fuzzyInputForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Mostrar spinner
+            document.getElementById('loadingSpinner').style.display = 'block';
+            
+            // Simular procesamiento
+            setTimeout(() => {
+                document.getElementById('loadingSpinner').style.display = 'none';
+                // Aquí irías el código para enviar los datos al backend de Django
+                console.log('Procesando variables difusas...');
+            }, 2000);
+        });
+
+        // Animaciones al cargar
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(() => {
+                document.querySelectorAll('.fade-in').forEach((el, index) => {
+                    setTimeout(() => {
+                        el.style.opacity = '1';
+                        el.style.transform = 'translateY(0)';
+                    }, index * 100);
+                });
+            }, 100);
+        });
+    </script>
+    {% endblock %}
+</body>
+</html>

@@ -1,0 +1,703 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Home - Sistema de Lógica Difusa Mamdani{% endblock %}
+
+{% block nav_title %}
+    <i class="fas fa-home me-2"></i>
+    Inicio - Sistema Fuzzy
+{% endblock %}
+
+{% block extra_css %}
+{{ block.super }}
+<style>
+    .hero-section {
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.9), rgba(118, 75, 162, 0.9)),
+                    url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000"><defs><radialGradient id="a" cx="50%" cy="50%"><stop offset="0%" style="stop-color:%23ffffff;stop-opacity:0.1"/><stop offset="100%" style="stop-color:%23ffffff;stop-opacity:0"/></radialGradient></defs><rect width="100%" height="100%" fill="url(%23a)"/></svg>');
+        background-size: cover;
+        border-radius: 25px;
+        color: white;
+        margin-bottom: 3rem;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .hero-section::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="25" cy="25" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="75" cy="25" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="25" cy="75" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="75" cy="75" r="1" fill="rgba(255,255,255,0.1)"/></svg>');
+        opacity: 0.3;
+        animation: float 20s ease-in-out infinite;
+    }
+
+    @keyframes float {
+        0%, 100% { transform: translateY(0px); }
+        50% { transform: translateY(-20px); }
+    }
+
+    /* Estilos para la barra de progreso */
+    .loading-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.8);
+        display: none;
+        justify-content: center;
+        align-items: center;
+        z-index: 9999;
+        backdrop-filter: blur(5px);
+    }
+
+    .loading-container {
+        background: white;
+        padding: 3rem 2rem;
+        border-radius: 20px;
+        text-align: center;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        max-width: 400px;
+        width: 90%;
+    }
+
+    .loading-icon {
+        width: 80px;
+        height: 80px;
+        margin: 0 auto 1.5rem;
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        color: white;
+        animation: pulse-loading 2s infinite;
+    }
+
+    @keyframes pulse-loading {
+        0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(102, 126, 234, 0.7); }
+        50% { transform: scale(1.1); box-shadow: 0 0 0 20px rgba(102, 126, 234, 0); }
+        100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(102, 126, 234, 0); }
+    }
+
+    .progress-container {
+        background: #f0f0f0;
+        border-radius: 25px;
+        height: 8px;
+        overflow: hidden;
+        margin: 1.5rem 0;
+        position: relative;
+    }
+
+    .progress-bar {
+        height: 100%;
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        border-radius: 25px;
+        width: 0%;
+        transition: width 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .progress-bar::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+        animation: shimmer 2s infinite;
+    }
+
+    @keyframes shimmer {
+        0% { left: -100%; }
+        100% { left: 100%; }
+    }
+
+    .loading-text {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: var(--primary-color);
+        margin-bottom: 0.5rem;
+    }
+
+    .loading-subtitle {
+        color: #666;
+        font-size: 0.9rem;
+    }
+
+    .progress-percentage {
+        font-weight: bold;
+        color: var(--primary-color);
+        font-size: 1.1rem;
+        margin-top: 0.5rem;
+    }
+
+    /* Estilos existentes */
+    .feature-card {
+        height: 100%;
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .feature-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+        transition: left 0.5s;
+    }
+
+    .feature-card:hover::before {
+        left: 100%;
+    }
+
+    .feature-card:hover {
+        transform: translateY(-10px) scale(1.02);
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+    }
+
+    .feature-icon {
+        width: 80px;
+        height: 80px;
+        margin: 0 auto 1.5rem;
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        color: white;
+        box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+    }
+
+    .quick-start-section {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        border-radius: 20px;
+        padding: 2rem;
+        margin: 2rem 0;
+    }
+
+    .step-card {
+        background: white;
+        border-radius: 15px;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+        border-left: 4px solid var(--primary-color);
+        transition: all 0.3s ease;
+        position: relative;
+    }
+
+    .step-card:hover {
+        transform: translateX(10px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    }
+
+    .step-number {
+        position: absolute;
+        left: -15px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 30px;
+        height: 30px;
+        background: var(--primary-color);
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        font-size: 0.9rem;
+    }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1.5rem;
+        margin: 2rem 0;
+    }
+
+    .stat-item {
+        text-align: center;
+        padding: 2rem;
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+        transition: transform 0.3s ease;
+    }
+
+    .stat-item:hover {
+        transform: translateY(-5px);
+    }
+
+    .stat-number {
+        font-size: 3rem;
+        font-weight: 700;
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .recent-activity {
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 20px;
+        padding: 2rem;
+        backdrop-filter: blur(10px);
+    }
+
+    .activity-item {
+        display: flex;
+        align-items: center;
+        padding: 1rem;
+        border-radius: 10px;
+        margin-bottom: 0.5rem;
+        transition: background 0.3s ease;
+    }
+
+    .activity-item:hover {
+        background: rgba(102, 126, 234, 0.05);
+    }
+
+    .activity-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 1rem;
+        color: white;
+    }
+
+    .activity-success { background: var(--success-color); }
+    .activity-info { background: var(--info-color); }
+    .activity-warning { background: var(--warning-color); }
+
+    .pulse {
+        animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+        100% { transform: scale(1); }
+    }
+
+    .gradient-text {
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .cta-section {
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        color: white;
+        border-radius: 25px;
+        padding: 3rem 2rem;
+        text-align: center;
+        margin: 3rem 0;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .cta-section::before {
+        content: '';
+        position: absolute;
+        top: -50%; left: -50%;
+        width: 200%; height: 200%;
+        background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+        animation: rotate 20s linear infinite;
+    }
+
+    @keyframes rotate {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    .btn-cta {
+        background: rgba(255, 255, 255, 0.2);
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        color: white;
+        padding: 1rem 2rem;
+        border-radius: 50px;
+        font-weight: 600;
+        text-decoration: none;
+        display: inline-block;
+        transition: all 0.3s ease;
+        position: relative;
+        z-index: 1;
+    }
+
+    .btn-cta:hover {
+        background: white;
+        color: var(--primary-color);
+        transform: translateY(-3px);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    }
+
+    /* Animación para botones deshabilitados durante carga */
+    .btn-loading {
+        opacity: 0.6;
+        pointer-events: none;
+    }
+
+    .btn-loading .spinner {
+        display: inline-block;
+        width: 1rem;
+        height: 1rem;
+        border: 2px solid transparent;
+        border-top: 2px solid currentColor;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin-right: 0.5rem;
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+</style>
+{% endblock %}
+
+{% block page_header %}
+<div class="hero-section">
+    <div class="container py-5 position-relative" style="z-index: 1;">
+        <div class="row align-items-center min-vh-50">
+            <div class="col-lg-8">
+                <h1 class="display-3 fw-bold mb-4">
+                    Sistema Inteligente de 
+                    <span class="d-block">Lógica Difusa</span>
+                </h1>
+                <p class="lead fs-4 mb-4 opacity-90">
+                    Implementación profesional del modelo Mamdani para sistemas de inferencia difusa. 
+                    Diseñado para análisis avanzado y toma de decisiones inteligentes.
+                </p>
+                <div class="d-flex flex-wrap gap-3">
+                    <a href="{% url 'fuzzy_model_complete' %}" id="startSimulationBtn" class="btn btn-light btn-lg px-4 py-3 rounded-pill">
+                        <i class="fas fa-play-circle me-2"></i>
+                        Iniciar Simulación
+                    </a>
+                    <a href="{% url 'membership_functions' %}" class="btn btn-outline-light btn-lg px-4 py-3 rounded-pill">
+                        <i class="fas fa-wave-square me-2"></i>
+                        Ver Funciones
+                    </a>
+                </div>
+            </div>
+            <div class="col-lg-4 text-center">
+                <div class="feature-icon mx-auto pulse" style="width: 150px; height: 150px; font-size: 4rem;">
+                    <i class="fas fa-brain"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% comment %} {% block sidebar %}
+<div class="recent-activity fade-in">
+    <h5 class="mb-4"><i class="fas fa-history me-2 gradient-text"></i> Actividad Reciente</h5>
+    {% for activity in recent_activities|slice:":5" %}
+    <div class="activity-item">
+        <div class="activity-icon activity-{{ activity.type }}">
+            <i class="fas fa-{{ activity.icon }}"></i>
+        </div>
+        <div>
+            <div class="fw-semibold">{{ activity.title }}</div>
+            <small class="text-muted">{{ activity.timestamp|timesince }} ago</small>
+        </div>
+    </div>
+    {% empty %}
+    <div class="activity-item">
+        <div class="activity-icon activity-info">
+            <i class="fas fa-info"></i>
+        </div>
+        <div>
+            <div class="fw-semibold">Sistema Iniciado</div>
+            <small class="text-muted">Listo para usar</small>
+        </div>
+    </div>
+    {% endfor %}
+    <div class="mt-3">
+        <a href="{% url 'activity_log' %}" class="text-decoration-none small">
+            Ver todo el historial <i class="fas fa-arrow-right ms-1"></i>
+        </a>
+    </div>
+</div>
+<div class="sidebar mt-4 fade-in">
+    <h6 class="mb-3"><i class="fas fa-cog me-2"></i> Configuración Rápida</h6>
+    <div class="d-grid gap-2">
+        <a href="{% url 'settings' %}" class="btn btn-outline-primary btn-sm"><i class="fas fa-sliders-h me-2"></i> Parámetros</a>
+        <a href="{% url 'export_data' %}" class="btn btn-outline-success btn-sm"><i class="fas fa-download me-2"></i> Exportar Datos</a>
+        <a href="{% url 'help' %}" class="btn btn-outline-info btn-sm"><i class="fas fa-question-circle me-2"></i> Ayuda</a>
+    </div>
+</div>
+{% endblock %} {% endcomment %}
+
+{% block main_content %}
+<!-- Estadísticas del Sistema -->
+<!-- Puedes mostrar aquí {% verbatim %}{{ system_stats }}{% endverbatim %} -->
+
+<div class="row mb-5">
+    <div class="col-lg-4 col-md-6 mb-4">
+        <div class="card card-custom feature-card h-100">
+            <div class="card-body text-center p-4">
+                <div class="feature-icon"><i class="fas fa-brain"></i></div>
+                <h5 class="card-title mb-3">Modelo Mamdani</h5>
+                <p class="card-text">Implementación completa del modelo de inferencia difusa Mamdani con fuzzificación, evaluación de reglas y defuzzificación.</p>
+                <a href="{% url 'about_mamdani' %}" class="btn btn-outline-primary btn-sm">Saber más <i class="fas fa-arrow-right ms-1"></i></a>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4 col-md-6 mb-4">
+        <div class="card card-custom feature-card h-100">
+            <div class="card-body text-center p-4">
+                <div class="feature-icon"><i class="fas fa-wave-square"></i></div>
+                <h5 class="card-title mb-3">Funciones de Membresía</h5>
+                <p class="card-text">Soporte para múltiples tipos de funciones: triangulares, trapezoidales, gaussianas y personalizadas con visualización interactiva.</p>
+                <a href="{% url 'membership_functions' %}" class="btn btn-outline-primary btn-sm">Explorar <i class="fas fa-arrow-right ms-1"></i></a>
+            </div>
+        </div>
+    </div>
+    {% comment %} <div class="col-lg-4 col-md-6 mb-4">
+        <div class="card card-custom feature-card h-100">
+            <div class="card-body text-center p-4">
+                <div class="feature-icon"><i class="fas fa-chart-line"></i></div>
+                <h5 class="card-title mb-3">Análisis Visual</h5>
+                <p class="card-text">Gráficos interactivos en tiempo real para visualizar el comportamiento del sistema y los resultados de inferencia.</p>
+                <a href="{% url 'analytics' %}" class="btn btn-outline-primary btn-sm">Ver análisis <i class="fas fa-arrow-right ms-1"></i></a>
+            </div>
+        </div>
+    </div> {% endcomment %}
+    <div class="col-lg-4 col-md-6 mb-4">
+        <div class="card card-custom feature-card h-100">
+            <div class="card-body text-center p-4">
+                <div class="feature-icon"><i class="fas fa-cogs"></i></div>
+                <h5 class="card-title mb-3">Motor de Reglas</h5>
+                <p class="card-text">Sistema avanzado de reglas difusas con operadores lógicos complejos y evaluación paralela.</p>
+                <a href="{% url 'fuzzy_rules' %}" class="btn btn-outline-primary btn-sm">Configurar <i class="fas fa-arrow-right ms-1"></i></a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="quick-start-section fade-in">
+    <div class="row">
+        <div class="col-12"><h3 class="text-center mb-4"><i class="fas fa-play-circle me-2"></i> Guía de Inicio Rápido</h3></div>
+        <div class="col-lg-6">
+            <div class="step-card"><div class="step-number">1</div><h6>Definir Variables</h6><p class="text-muted">Configure las variables de entrada y salida con sus rangos correspondientes.</p></div>
+            <div class="step-card"><div class="step-number">2</div><h6>Funciones de Membresía</h6><p class="text-muted">Establezca las funciones de membresía para cada variable lingüística.</p></div>
+            <div class="step-card"><div class="step-number">3</div><h6>Crear Reglas</h6><p class="text-muted">Defina las reglas difusas que gobiernan el comportamiento del sistema.</p></div>
+        </div>
+        <div class="col-lg-6">
+            <div class="step-card"><div class="step-number">4</div><h6>Ejecutar Simulación</h6><p class="text-muted">Lance la simulación con diferentes valores de entrada para validar el sistema.</p></div>
+            <div class="step-card"><div class="step-number">5</div><h6>Analizar Resultados</h6><p class="text-muted">Revise los gráficos y métricas para evaluar el rendimiento del modelo.</p></div>
+            <div class="step-card"><div class="step-number">6</div><h6>Optimizar Sistema</h6><p class="text-muted">Ajuste parámetros y reglas basándose en los resultados obtenidos.</p></div>
+        </div>
+    </div>
+</div>
+
+<div class="cta-section">
+    <div class="position-relative" style="z-index: 1;">
+        <h3 class="display-6 fw-bold mb-3">¿Listo para comenzar?</h3>
+        <p class="lead mb-4 opacity-90">Inicia tu primera simulación y descubre el poder de la lógica difusa</p>
+        <a href="{% url 'fuzzy_model_complete' %}" id="ctaSimulationBtn" class="btn-cta me-3"><i class="fas fa-play me-2"></i> Comenzar Simulación</a>
+        {% comment %} <a href="{% url 'tutorial' %}" class="btn-cta"><i class="fas fa-graduation-cap me-2"></i> Ver Tutorial</a> {% endcomment %}
+    </div>
+</div>
+
+<!-- Overlay de carga -->
+<div id="loadingOverlay" class="loading-overlay">
+    <div class="loading-container">
+        <div class="loading-icon">
+            <i class="fas fa-brain"></i>
+        </div>
+        <div class="loading-text">Iniciando Sistema Fuzzy</div>
+        <div class="loading-subtitle" id="loadingSubtitle">Preparando el entorno de simulación...</div>
+        <div class="progress-container">
+            <div class="progress-bar" id="progressBar"></div>
+        </div>
+        <div class="progress-percentage" id="progressPercentage">0%</div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_content %}
+{% if notifications %}
+<div class="row"><div class="col-12"><div class="card card-custom"><div class="card-header"><h6><i class="fas fa-bell me-2"></i> Notificaciones del Sistema</h6></div><div class="card-body">
+    {% for notification in notifications %}
+    <div class="alert alert-{{ notification.type }} alert-dismissible fade show" role="alert">
+        <i class="fas fa-{{ notification.icon }} me-2"></i> {{ notification.message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    {% endfor %}
+</div></div></div></div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Configuración de la barra de progreso
+        const loadingSteps = [
+            { percentage: 15, text: "Inicializando motor de inferencia..." },
+            { percentage: 30, text: "Cargando funciones de membresía..." },
+            { percentage: 45, text: "Configurando reglas difusas..." },
+            { percentage: 60, text: "Preparando variables de entrada..." },
+            { percentage: 75, text: "Optimizando algoritmos..." },
+            { percentage: 90, text: "Validando configuración..." },
+            { percentage: 100, text: "¡Sistema listo! Redirigiendo..." }
+        ];
+
+        function showLoadingProgress(targetUrl) {
+            const overlay = document.getElementById('loadingOverlay');
+            const progressBar = document.getElementById('progressBar');
+            const progressPercentage = document.getElementById('progressPercentage');
+            const loadingSubtitle = document.getElementById('loadingSubtitle');
+            
+            overlay.style.display = 'flex';
+            
+            let currentStep = 0;
+            
+            function updateProgress() {
+                if (currentStep < loadingSteps.length) {
+                    const step = loadingSteps[currentStep];
+                    
+                    // Animación suave del progreso
+                    const startPercentage = currentStep > 0 ? loadingSteps[currentStep - 1].percentage : 0;
+                    const targetPercentage = step.percentage;
+                    let currentPercentage = startPercentage;
+                    
+                    const progressInterval = setInterval(() => {
+                        currentPercentage += (targetPercentage - startPercentage) / 20;
+                        
+                        if (currentPercentage >= targetPercentage) {
+                            currentPercentage = targetPercentage;
+                            clearInterval(progressInterval);
+                        }
+                        
+                        progressBar.style.width = currentPercentage + '%';
+                        progressPercentage.textContent = Math.round(currentPercentage) + '%';
+                    }, 50);
+                    
+                    loadingSubtitle.textContent = step.text;
+                    currentStep++;
+                    
+                    if (currentStep < loadingSteps.length) {
+                        setTimeout(updateProgress, 300); // Tiempo variable para realismo
+                    } else {
+                        setTimeout(() => {
+                            window.location.href = targetUrl;
+                        }, 1000);
+                    }
+                }
+            }
+            
+            updateProgress();
+        }
+
+        // Agregar event listeners a los botones de simulación
+        const simulationButtons = [
+            document.getElementById('startSimulationBtn'),
+            document.getElementById('ctaSimulationBtn')
+        ];
+
+        simulationButtons.forEach(button => {
+            if (button) {
+                button.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    
+                    // Deshabilitar el botón y mostrar estado de carga
+                    button.classList.add('btn-loading');
+                    const originalHTML = button.innerHTML;
+                    button.innerHTML = '<span class="spinner"></span>Iniciando...';
+                    
+                    const targetUrl = button.getAttribute('href');
+                    
+                    // Iniciar la animación de progreso
+                    showLoadingProgress(targetUrl);
+                });
+            }
+        });
+
+        // Smooth scrolling para enlaces ancla
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            });
+        });
+
+        // Efecto parallax para el hero section
+        window.addEventListener('scroll', () => {
+            const scrolled = window.pageYOffset;
+            const parallax = document.querySelector('.hero-section');
+            if (parallax) {
+                parallax.style.transform = `translateY(${scrolled * 0.5}px)`;
+            }
+        });
+
+        // Animación de aparición para las tarjetas
+        const observerOptions = { threshold: 0.1, rootMargin: '0px 0px -100px 0px' };
+        const cardObserver = new IntersectionObserver(entries => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.feature-card').forEach(card => {
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(30px)';
+            card.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+            cardObserver.observe(card);
+        });
+
+        // Función para cerrar el overlay (por si se necesita cancelar)
+        function hideLoadingOverlay() {
+            const overlay = document.getElementById('loadingOverlay');
+            overlay.style.display = 'none';
+            
+            // Restaurar botones
+            simulationButtons.forEach(button => {
+                if (button && button.classList.contains('btn-loading')) {
+                    button.classList.remove('btn-loading');
+                    const icon = button.getAttribute('href').includes('fuzzy_model_complete') ? 
+                        '<i class="fas fa-play-circle me-2"></i>' : '<i class="fas fa-play me-2"></i>';
+                    const text = button.getAttribute('href').includes('fuzzy_model_complete') ? 
+                        'Iniciar Simulación' : 'Comenzar Simulación';
+                    button.innerHTML = icon + text;
+                }
+            });
+        }
+
+        // Opcional: cerrar overlay si se hace clic fuera de él
+        document.getElementById('loadingOverlay').addEventListener('click', function(e) {
+            if (e.target === this) {
+                hideLoadingOverlay();
+            }
+        });
+
+        // Manejar tecla ESC para cerrar overlay
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                hideLoadingOverlay();
+            }
+        });
+    });
+</script>
+{% endblock %}

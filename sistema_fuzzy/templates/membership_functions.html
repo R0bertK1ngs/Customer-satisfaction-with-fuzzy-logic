@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Funciones de Membresía - Lógica Difusa</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <style>
+        .function-card {
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .function-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        .parameter-input {
+            max-width: 80px;
+            display: inline-block;
+        }
+        .chart-container {
+            position: relative;
+            height: 300px;
+            width: 100%;
+        }
+        .function-explanation {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-left: 4px solid #007bff;
+        }
+        .math-formula {
+            font-family: 'Times New Roman', serif;
+            font-size: 1.1em;
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .simulation-panel {
+            background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+            border: 1px solid #f6c23e;
+        }
+    </style>
+</head>
+<body class="bg-light">
+
+<div class="container py-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body bg-primary text-white">
+                    <h2 class="mb-0">
+                        <i class="fas fa-project-diagram me-2"></i>
+                        Funciones de Membresía - Lógica Difusa
+                    </h2>
+                    <p class="mb-0 mt-2">Crea, visualiza y simula funciones de membresía para sistemas difusos</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Panel de Creación -->
+        <div class="col-lg-4 mb-4">
+            <div class="card function-card shadow-sm">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-plus-circle me-2"></i>Crear Función de Membresía
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form id="membershipForm">
+                        <div class="mb-3">
+                            <label for="functionName" class="form-label">Nombre de la Función</label>
+                            <input type="text" class="form-control" id="functionName" placeholder="Ej: Temperatura_Baja">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="functionType" class="form-label">Tipo de Función</label>
+                            <select class="form-select" id="functionType">
+                                <option value="">Seleccionar tipo...</option>
+                                <option value="triangular">Triangular</option>
+                                <option value="trapezoidal">Trapezoidal</option>
+                                <option value="gaussian">Gaussiana</option>
+                            </select>
+                        </div>
+
+                        <div id="parametersContainer">
+                            <!-- Los parámetros se cargarán dinámicamente -->
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="universe" class="form-label">Rango del Universo</label>
+                            <div class="row">
+                                <div class="col-6">
+                                    <input type="number" class="form-control" id="universeMin" placeholder="Min" value="0">
+                                </div>
+                                <div class="col-6">
+                                    <input type="number" class="form-control" id="universeMax" placeholder="Max" value="100">
+                                </div>
+                            </div>
+                        </div>
+
+                        <button type="button" class="btn btn-success w-100" onclick="addFunction()">
+                            <i class="fas fa-plus me-1"></i>Crear Función
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Panel de Visualización -->
+        <div class="col-lg-8 mb-4">
+            <div class="card function-card shadow-sm">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-chart-line me-2"></i>Visualización
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="membershipChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Panel de Explicaciones -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0">
+                        <i class="fas fa-book me-2"></i>Explicación de Funciones de Membresía
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <div class="function-explanation p-3 rounded h-100">
+                                <h6 class="text-primary"><i class="fas fa-triangle-exclamation"></i> Función Triangular</h6>
+                                <p class="small mb-2">Define un conjunto difuso con forma triangular. Es simple y eficiente computacionalmente.</p>
+                                <div class="math-formula">
+                                    μ(x) = max(0, min((x-a)/(b-a), (c-x)/(c-b)))
+                                </div>
+                                <p class="small mb-0"><strong>Parámetros:</strong> a (inicio), b (pico), c (fin)</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="function-explanation p-3 rounded h-100">
+                                <h6 class="text-success"><i class="fas fa-square"></i> Función Trapezoidal</h6>
+                                <p class="small mb-2">Extiende la triangular con una región plana en el pico. Útil para rangos amplios.</p>
+                                <div class="math-formula">
+                                    μ(x) = max(0, min((x-a)/(b-a), 1, (d-x)/(d-c)))
+                                </div>
+                                <p class="small mb-0"><strong>Parámetros:</strong> a (inicio), b (inicio plano), c (fin plano), d (fin)</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="function-explanation p-3 rounded h-100">
+                                <h6 class="text-info"><i class="fas fa-wave-square"></i> Función Gaussiana</h6>
+                                <p class="small mb-2">Forma de campana suave. Ideal para modelar variables continuas naturales.</p>
+                                <div class="math-formula">
+                                    μ(x) = exp(-0.5 * ((x-c)/σ)²)
+                                </div>
+                                <p class="small mb-0"><strong>Parámetros:</strong> c (centro), σ (desviación estándar)</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Panel de Simulación -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-dark text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-play-circle me-2"></i>Simulador Interactivo
+                    </h5>
+                </div>
+                <div class="card-body simulation-panel">
+                    <div class="row align-items-center mb-3">
+                        <div class="col-md-6">
+                            <label for="inputValue" class="form-label"><strong>Valor de Entrada:</strong></label>
+                            <input type="range" class="form-range" id="inputValue" min="0" max="100" value="50" oninput="updateSimulation()">
+                            <div class="text-center mt-1">
+                                <span class="badge bg-primary fs-6" id="inputDisplay">50</span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card bg-white">
+                                <div class="card-body text-center">
+                                    <h6 class="card-title">Grados de Membresía</h6>
+                                    <div id="membershipResults">
+                                        <p class="text-muted">Crea funciones para ver los resultados</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Cómo usar el simulador:</strong>
+                        <ol class="mb-0 mt-2">
+                            <li>Crea una o más funciones de membresía usando el panel izquierdo</li>
+                            <li>Ajusta el valor de entrada con el deslizador</li>
+                            <li>Observa cómo cambian los grados de membresía en tiempo real</li>
+                            <li>La gráfica muestra visualmente dónde se evalúa cada función</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Panel de Funciones Creadas -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-secondary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-list me-2"></i>Funciones Creadas
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div id="functionsContainer">
+                        <p class="text-muted text-center py-4">No hay funciones creadas. Crea tu primera función usando el panel superior.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Variables globales
+let membershipFunctions = [];
+let chart = null;
+
+// Inicializar gráfico
+function initChart() {
+    const ctx = document.getElementById('membershipChart').getContext('2d');
+    chart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            datasets: []
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'Funciones de Membresía'
+                },
+                legend: {
+                    display: true,
+                    position: 'top'
+                }
+            },
+            scales: {
+                x: {
+                    type: 'linear',
+                    position: 'bottom',
+                    title: {
+                        display: true,
+                        text: 'Universo de Discurso'
+                    }
+                },
+                y: {
+                    min: 0,
+                    max: 1,
+                    title: {
+                        display: true,
+                        text: 'Grado de Membresía (μ)'
+                    }
+                }
+            }
+        }
+    });
+}
+
+// Manejar cambio de tipo de función
+document.getElementById('functionType').addEventListener('change', function() {
+    const type = this.value;
+    const container = document.getElementById('parametersContainer');
+    
+    if (!type) {
+        container.innerHTML = '';
+        return;
+    }
+
+    let html = '<div class="mb-3"><label class="form-label">Parámetros:</label><div class="row">';
+    
+    switch(type) {
+        case 'triangular':
+            html += `
+                <div class="col-4">
+                    <input type="number" class="form-control parameter-input" id="param_a" placeholder="a (inicio)" step="0.1">
+                    <small class="text-muted">Inicio</small>
+                </div>
+                <div class="col-4">
+                    <input type="number" class="form-control parameter-input" id="param_b" placeholder="b (pico)" step="0.1">
+                    <small class="text-muted">Pico</small>
+                </div>
+                <div class="col-4">
+                    <input type="number" class="form-control parameter-input" id="param_c" placeholder="c (fin)" step="0.1">
+                    <small class="text-muted">Fin</small>
+                </div>
+            `;
+            break;
+        case 'trapezoidal':
+            html += `
+                <div class="col-3">
+                    <input type="number" class="form-control parameter-input" id="param_a" placeholder="a" step="0.1">
+                    <small class="text-muted">Inicio</small>
+                </div>
+                <div class="col-3">
+                    <input type="number" class="form-control parameter-input" id="param_b" placeholder="b" step="0.1">
+                    <small class="text-muted">Inicio plano</small>
+                </div>
+                <div class="col-3">
+                    <input type="number" class="form-control parameter-input" id="param_c" placeholder="c" step="0.1">
+                    <small class="text-muted">Fin plano</small>
+                </div>
+                <div class="col-3">
+                    <input type="number" class="form-control parameter-input" id="param_d" placeholder="d" step="0.1">
+                    <small class="text-muted">Fin</small>
+                </div>
+            `;
+            break;
+        case 'gaussian':
+            html += `
+                <div class="col-6">
+                    <input type="number" class="form-control parameter-input" id="param_c" placeholder="c (centro)" step="0.1">
+                    <small class="text-muted">Centro</small>
+                </div>
+                <div class="col-6">
+                    <input type="number" class="form-control parameter-input" id="param_sigma" placeholder="σ (desv.)" step="0.1">
+                    <small class="text-muted">Desviación</small>
+                </div>
+            `;
+            break;
+    }
+    
+    html += '</div></div>';
+    container.innerHTML = html;
+});
+
+// Funciones de membresía
+function triangular(x, a, b, c) {
+    if (x <= a || x >= c) return 0;
+    if (x <= b) return (x - a) / (b - a);
+    return (c - x) / (c - b);
+}
+
+function trapezoidal(x, a, b, c, d) {
+    if (x <= a || x >= d) return 0;
+    if (x <= b) return (x - a) / (b - a);
+    if (x <= c) return 1;
+    return (d - x) / (d - c);
+}
+
+function gaussian(x, c, sigma) {
+    return Math.exp(-0.5 * Math.pow((x - c) / sigma, 2));
+}
+
+// Agregar función
+function addFunction() {
+    const name = document.getElementById('functionName').value;
+    const type = document.getElementById('functionType').value;
+    const universeMin = parseFloat(document.getElementById('universeMin').value);
+    const universeMax = parseFloat(document.getElementById('universeMax').value);
+
+    if (!name || !type) {
+        alert('Por favor completa todos los campos obligatorios');
+        return;
+    }
+
+    // Obtener parámetros según el tipo
+    let params = {};
+    let valid = true;
+
+    switch(type) {
+        case 'triangular':
+            params.a = parseFloat(document.getElementById('param_a').value);
+            params.b = parseFloat(document.getElementById('param_b').value);
+            params.c = parseFloat(document.getElementById('param_c').value);
+            valid = !isNaN(params.a) && !isNaN(params.b) && !isNaN(params.c);
+            break;
+        case 'trapezoidal':
+            params.a = parseFloat(document.getElementById('param_a').value);
+            params.b = parseFloat(document.getElementById('param_b').value);
+            params.c = parseFloat(document.getElementById('param_c').value);
+            params.d = parseFloat(document.getElementById('param_d').value);
+            valid = !isNaN(params.a) && !isNaN(params.b) && !isNaN(params.c) && !isNaN(params.d);
+            break;
+        case 'gaussian':
+            params.c = parseFloat(document.getElementById('param_c').value);
+            params.sigma = parseFloat(document.getElementById('param_sigma').value);
+            valid = !isNaN(params.c) && !isNaN(params.sigma);
+            break;
+    }
+
+    if (!valid) {
+        alert('Por favor ingresa parámetros válidos');
+        return;
+    }
+
+    // Crear función
+    const func = {
+        id: Date.now(),
+        name: name,
+        type: type,
+        params: params,
+        universeMin: universeMin,
+        universeMax: universeMax,
+        color: `hsl(${Math.random() * 360}, 70%, 50%)`
+    };
+
+    membershipFunctions.push(func);
+    updateChart();
+    updateFunctionsList();
+    updateSimulation();
+    
+    // Limpiar formulario
+    document.getElementById('membershipForm').reset();
+    document.getElementById('parametersContainer').innerHTML = '';
+}
+
+// Actualizar gráfico
+function updateChart() {
+    const datasets = membershipFunctions.map(func => {
+        const data = [];
+        const step = (func.universeMax - func.universeMin) / 200;
+        
+        for (let x = func.universeMin; x <= func.universeMax; x += step) {
+            let y = 0;
+            switch(func.type) {
+                case 'triangular':
+                    y = triangular(x, func.params.a, func.params.b, func.params.c);
+                    break;
+                case 'trapezoidal':
+                    y = trapezoidal(x, func.params.a, func.params.b, func.params.c, func.params.d);
+                    break;
+                case 'gaussian':
+                    y = gaussian(x, func.params.c, func.params.sigma);
+                    break;
+            }
+            data.push({x: x, y: y});
+        }
+
+        return {
+            label: func.name,
+            data: data,
+            borderColor: func.color,
+            backgroundColor: func.color + '20',
+            fill: false,
+            tension: 0.1,
+            pointRadius: 0,
+            pointHoverRadius: 3
+        };
+    });
+
+    chart.data.datasets = datasets;
+    chart.update();
+}
+
+// Actualizar lista de funciones
+function updateFunctionsList() {
+    const container = document.getElementById('functionsContainer');
+    
+    if (membershipFunctions.length === 0) {
+        container.innerHTML = '<p class="text-muted text-center py-4">No hay funciones creadas. Crea tu primera función usando el panel superior.</p>';
+        return;
+    }
+
+    let html = '<div class="row">';
+    membershipFunctions.forEach(func => {
+        html += `
+            <div class="col-md-6 col-lg-4 mb-3">
+                <div class="card border-left" style="border-left: 4px solid ${func.color};">
+                    <div class="card-body">
+                        <h6 class="card-title d-flex justify-content-between align-items-center">
+                            ${func.name}
+                            <button class="btn btn-sm btn-outline-danger" onclick="removeFunction(${func.id})">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </h6>
+                        <p class="card-text">
+                            <small class="text-muted">Tipo: <strong>${func.type}</strong></small><br>
+                            <small class="text-muted">Rango: [${func.universeMin}, ${func.universeMax}]</small>
+                        </p>
+                        <div class="small">
+                            <strong>Parámetros:</strong><br>
+                            ${Object.entries(func.params).map(([key, value]) => `${key}: ${value}`).join(', ')}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+    html += '</div>';
+    
+    container.innerHTML = html;
+}
+
+// Remover función
+function removeFunction(id) {
+    membershipFunctions = membershipFunctions.filter(func => func.id !== id);
+    updateChart();
+    updateFunctionsList();
+    updateSimulation();
+}
+
+// Actualizar simulación
+function updateSimulation() {
+    const inputValue = parseFloat(document.getElementById('inputValue').value);
+    document.getElementById('inputDisplay').textContent = inputValue;
+    
+    const resultsContainer = document.getElementById('membershipResults');
+    
+    if (membershipFunctions.length === 0) {
+        resultsContainer.innerHTML = '<p class="text-muted">Crea funciones para ver los resultados</p>';
+        return;
+    }
+
+    let html = '';
+    membershipFunctions.forEach(func => {
+        let membership = 0;
+        switch(func.type) {
+            case 'triangular':
+                membership = triangular(inputValue, func.params.a, func.params.b, func.params.c);
+                break;
+            case 'trapezoidal':
+                membership = trapezoidal(inputValue, func.params.a, func.params.b, func.params.c, func.params.d);
+                break;
+            case 'gaussian':
+                membership = gaussian(inputValue, func.params.c, func.params.sigma);
+                break;
+        }
+        
+        const percentage = Math.round(membership * 100);
+        html += `
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <span style="color: ${func.color}"><strong>${func.name}:</strong></span>
+                <div>
+                    <span class="badge" style="background-color: ${func.color}">${membership.toFixed(3)}</span>
+                    <small class="text-muted">(${percentage}%)</small>
+                </div>
+            </div>
+        `;
+    });
+    
+    resultsContainer.innerHTML = html;
+}
+
+// Inicializar
+document.addEventListener('DOMContentLoaded', function() {
+    initChart();
+});
+</script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

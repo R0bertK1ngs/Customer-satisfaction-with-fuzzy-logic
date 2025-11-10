@@ -1,0 +1,992 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema Difuso Mamdani</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.95;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        /* TABS DE NAVEGACIÓN */
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            border-bottom: 3px solid #667eea;
+            flex-wrap: wrap;
+        }
+
+        .tab {
+            padding: 15px 30px;
+            background: #f0f0f0;
+            border: none;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border-radius: 10px 10px 0 0;
+        }
+
+        .tab:hover {
+            background: #e0e0e0;
+        }
+
+        .tab.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* DIAGRAMA MAMDANI */
+        .diagram-main {
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            margin: 30px 0;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            border: 2px solid #e0e0e0;
+        }
+
+        .diagram-main h2 {
+            color: #333;
+            text-align: center;
+            font-size: 2em;
+            margin-bottom: 40px;
+            font-weight: 600;
+        }
+
+        .flow-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin: 30px 0;
+        }
+
+        .flow-box {
+            background: white;
+            border: 3px solid #667eea;
+            border-radius: 10px;
+            padding: 20px 15px;
+            min-width: 160px;
+            text-align: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 10px rgba(102, 126, 234, 0.2);
+        }
+
+        .flow-box:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .flow-box h3 {
+            font-size: 1.1em;
+            margin-bottom: 10px;
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .flow-box p {
+            font-size: 0.9em;
+            color: #555;
+            line-height: 1.4;
+        }
+
+        .flow-box ul {
+            list-style: none;
+            padding: 0;
+            margin-top: 10px;
+        }
+
+        .flow-box li {
+            font-size: 0.85em;
+            color: #444;
+            padding: 3px 0;
+        }
+
+        .arrow-container {
+            display: flex;
+            align-items: center;
+            font-size: 2em;
+            color: #667eea;
+        }
+
+        /* SECCIÓN DE REGLAS */
+        .rules-section {
+            background: #f9f9f9;
+            padding: 30px;
+            border-radius: 10px;
+            margin: 30px 0;
+        }
+
+        .rules-section h3 {
+            color: #667eea;
+            font-size: 1.8em;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .rules-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .rule-card {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+
+        .rule-card:hover {
+            transform: translateX(5px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+        }
+
+        .rule-card .rule-number {
+            font-weight: 700;
+            color: #667eea;
+            font-size: 0.9em;
+            margin-bottom: 8px;
+        }
+
+        .rule-card .rule-if {
+            color: #333;
+            font-size: 0.9em;
+            line-height: 1.5;
+        }
+
+        .rule-card .rule-then {
+            color: #00b894;
+            font-weight: 600;
+            margin-top: 5px;
+            font-size: 0.95em;
+        }
+
+        .rule-card.low { border-left-color: #e74c3c; }
+        .rule-card.medium { border-left-color: #f39c12; }
+        .rule-card.high { border-left-color: #27ae60; }
+
+        /* FILTROS DE REGLAS */
+        .rules-filters {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .filter-btn {
+            padding: 10px 25px;
+            border: 2px solid #667eea;
+            background: white;
+            color: #667eea;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .filter-btn:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .filter-btn.active {
+            background: #667eea;
+            color: white;
+        }
+
+        /* VARIABLES DE ENTRADA/SALIDA */
+        .variables-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+            margin: 30px 0;
+        }
+
+        .variable-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 25px;
+            border-radius: 15px;
+            color: white;
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .variable-card h4 {
+            font-size: 1.4em;
+            margin-bottom: 15px;
+            border-bottom: 2px solid rgba(255,255,255,0.3);
+            padding-bottom: 10px;
+        }
+
+        .variable-card ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .variable-card li {
+            padding: 8px 0;
+            padding-left: 20px;
+            position: relative;
+            font-size: 0.95em;
+        }
+
+        .variable-card li:before {
+            content: "→";
+            position: absolute;
+            left: 0;
+            font-weight: bold;
+        }
+
+        /* FUNCIONES DE MEMBRESÍA */
+        .membership-visualization {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            margin: 30px 0;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .membership-chart {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+            margin-top: 20px;
+        }
+
+        .chart-item {
+            text-align: center;
+        }
+
+        .chart-item h5 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.1em;
+        }
+
+        .chart-bars {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .bar-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .bar-label {
+            min-width: 80px;
+            text-align: right;
+            font-size: 0.9em;
+            color: #555;
+            font-weight: 600;
+        }
+
+        .bar {
+            flex: 1;
+            height: 30px;
+            border-radius: 5px;
+            position: relative;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+        }
+
+        /* SIMULADOR MEJORADO */
+        .simulator {
+            background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+            padding: 30px;
+            border-radius: 15px;
+            margin: 30px 0;
+        }
+
+        .simulator h3 {
+            color: #667eea;
+            font-size: 1.8em;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .input-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+
+        .input-group {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+        }
+
+        .input-group label {
+            display: block;
+            color: #333;
+            font-weight: 600;
+            margin-bottom: 10px;
+            font-size: 1em;
+        }
+
+        .input-group select,
+        .input-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: border-color 0.3s ease;
+        }
+
+        .input-group select:focus,
+        .input-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 40px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            font-weight: 600;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .result-box {
+            margin-top: 25px;
+            padding: 30px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            display: none;
+        }
+
+        .result-box.show {
+            display: block;
+            animation: slideIn 0.5s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .result-box h4 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 1.6em;
+            text-align: center;
+        }
+
+        .info-box {
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            padding: 25px;
+            border-radius: 10px;
+            margin: 30px 0;
+            border-left: 5px solid #ff7675;
+        }
+
+        .info-box h3 {
+            color: #d63031;
+            margin-bottom: 15px;
+            font-size: 1.6em;
+        }
+
+        .info-box p {
+            color: #333;
+            line-height: 1.8;
+            font-size: 1.05em;
+        }
+
+        @media (max-width: 768px) {
+            .content {
+                padding: 20px;
+            }
+
+            .header h1 {
+                font-size: 1.8em;
+            }
+
+            .flow-container {
+                flex-direction: column;
+            }
+
+            .tabs {
+                flex-direction: column;
+            }
+
+            .tab {
+                border-radius: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🧠 Sistema de Inferencia Difusa Mamdani</h1>
+            <p>Modelo de Fidelización de Clientes con 27 Reglas Difusas</p>
+        </div>
+
+        <div class="content">
+            <!-- TABS DE NAVEGACIÓN -->
+            <div class="tabs">
+                <button class="tab active" onclick="showTab('modelo')">📊 Modelo Mamdani</button>
+                <button class="tab" onclick="showTab('variables')">📈 Variables</button>
+                <button class="tab" onclick="showTab('reglas')">📋 27 Reglas Difusas</button>
+                <button class="tab" onclick="showTab('simulador')">🚀 Simulador</button>
+            </div>
+
+            <!-- TAB 1: MODELO MAMDANI -->
+            <div id="modelo" class="tab-content active">
+                <div class="info-box">
+                    <h3>🎯 ¿Qué es un Sistema de Inferencia Mamdani?</h3>
+                    <p>
+                        El sistema de inferencia difusa Mamdani es un método que permite modelar el razonamiento humano 
+                        mediante reglas lingüísticas del tipo "SI-ENTONCES". Este modelo toma variables de entrada con 
+                        valores imprecisos o lingüísticos (como "bajo", "medio", "alto"), las procesa a través de un 
+                        conjunto de reglas expertas, y produce una salida precisa mediante un proceso de defuzzificación.
+                    </p>
+                </div>
+
+                <div class="diagram-main">
+                    <h2>Flujo del Sistema Mamdani</h2>
+                    
+                    <div class="flow-container">
+                        <div class="flow-box">
+                            <h3>1. Entradas Crisp</h3>
+                            <p>Valores numéricos precisos</p>
+                        </div>
+
+                        <div class="arrow-container">→</div>
+
+                        <div class="flow-box">
+                            <h3>2. Fuzzificación</h3>
+                            <p>Conversión a conjuntos difusos</p>
+                            <ul>
+                                <li>Duración</li>
+                                <li>Tipo</li>
+                                <li>Frecuencia</li>
+                            </ul>
+                        </div>
+
+                        <div class="arrow-container">→</div>
+
+                        <div class="flow-box">
+                            <h3>3. Motor de Inferencia</h3>
+                            <p>Evaluación de 27 reglas</p>
+                        </div>
+
+                        <div class="arrow-container">→</div>
+
+                        <div class="flow-box">
+                            <h3>4. Agregación</h3>
+                            <p>Combinación de resultados</p>
+                        </div>
+
+                        <div class="arrow-container">→</div>
+
+                        <div class="flow-box">
+                            <h3>5. Defuzzificación</h3>
+                            <p>Nivel de fidelización (0-100)</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="info-box" style="background: linear-gradient(135deg, #d4fc79 0%, #96e6a1 100%); border-left-color: #00b894;">
+                    <h3>💡 Ventajas del Modelo Mamdani</h3>
+                    <p>
+                        ✓ <strong>Interpretabilidad:</strong> Las reglas son comprensibles para humanos<br>
+                        ✓ <strong>Flexibilidad:</strong> Maneja incertidumbre y datos imprecisos<br>
+                        ✓ <strong>Conocimiento experto:</strong> Captura la experiencia del negocio<br>
+                        ✓ <strong>Adaptabilidad:</strong> Fácil modificación sin reentrenamiento<br>
+                        ✓ <strong>Explicabilidad:</strong> Decisiones auditables y transparentes
+                    </p>
+                </div>
+            </div>
+
+            <!-- TAB 2: VARIABLES -->
+            <div id="variables" class="tab-content">
+                <h2 style="text-align: center; color: #667eea; margin-bottom: 30px;">Variables del Sistema Difuso</h2>
+                
+                <div class="variables-section">
+                    <div class="variable-card">
+                        <h4>📅 Duración (Meses)</h4>
+                        <ul>
+                            <li><strong>Short (Corto):</strong> 0-12 meses</li>
+                            <li><strong>Medium (Medio):</strong> 6-30 meses</li>
+                            <li><strong>Long (Largo):</strong> 24-60 meses</li>
+                        </ul>
+                        <p style="margin-top: 15px; font-size: 0.9em; opacity: 0.9;">
+                            Mide el tiempo de permanencia del cliente en el servicio
+                        </p>
+                    </div>
+
+                    <div class="variable-card">
+                        <h4>🎫 Tipo de Suscripción</h4>
+                        <ul>
+                            <li><strong>Basic (Básico):</strong> Nivel 1</li>
+                            <li><strong>Standard (Estándar):</strong> Nivel 2</li>
+                            <li><strong>Premium:</strong> Nivel 3</li>
+                        </ul>
+                        <p style="margin-top: 15px; font-size: 0.9em; opacity: 0.9;">
+                            Categoría del plan contratado por el cliente
+                        </p>
+                    </div>
+
+                    <div class="variable-card">
+                        <h4>🔥 Frecuencia de Uso</h4>
+                        <ul>
+                            <li><strong>Low (Baja):</strong> 0-30 usos/mes</li>
+                            <li><strong>Medium (Media):</strong> 20-70 usos/mes</li>
+                            <li><strong>High (Alta):</strong> 60-100 usos/mes</li>
+                        </ul>
+                        <p style="margin-top: 15px; font-size: 0.9em; opacity: 0.9;">
+                            Nivel de interacción del cliente con el servicio
+                        </p>
+                    </div>
+                </div>
+
+                <div class="membership-visualization">
+                    <h3 style="color: #667eea; text-align: center; margin-bottom: 20px;">Variable de Salida: Nivel de Fidelización</h3>
+                    <div class="chart-bars" style="max-width: 600px; margin: 0 auto;">
+                        <div class="bar-item">
+                            <span class="bar-label">Bajo (0-40)</span>
+                            <div class="bar" style="width: 40%; background: linear-gradient(90deg, #e74c3c, #c0392b);"></div>
+                        </div>
+                        <div class="bar-item">
+                            <span class="bar-label">Medio (30-70)</span>
+                            <div class="bar" style="width: 70%; background: linear-gradient(90deg, #f39c12, #e67e22);"></div>
+                        </div>
+                        <div class="bar-item">
+                            <span class="bar-label">Alto (60-100)</span>
+                            <div class="bar" style="width: 100%; background: linear-gradient(90deg, #27ae60, #229954);"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 3: REGLAS DIFUSAS -->
+            <div id="reglas" class="tab-content">
+                <div class="rules-section">
+                    <h3>📋 Base de Conocimiento: 27 Reglas Difusas</h3>
+                    <p style="text-align: center; color: #666; margin-bottom: 20px;">
+                        Reglas expertas que modelan el comportamiento de fidelización de clientes
+                    </p>
+                    
+                    <div class="rules-filters">
+                        <button class="filter-btn active" onclick="filterRules('all')">Todas (27)</button>
+                        <button class="filter-btn" onclick="filterRules('low')">Baja (9)</button>
+                        <button class="filter-btn" onclick="filterRules('medium')">Media (9)</button>
+                        <button class="filter-btn" onclick="filterRules('high')">Alta (9)</button>
+                    </div>
+
+                    <div class="rules-grid" id="rulesGrid">
+                        <!-- Las reglas se generan dinámicamente -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 4: SIMULADOR -->
+            <div id="simulador" class="tab-content">
+                <div class="simulator">
+                    <h3>🚀 Simulador de Fidelización</h3>
+                    <p style="text-align: center; color: #333; margin-bottom: 25px;">
+                        Calcula el nivel de fidelización basado en el modelo Mamdani con 27 reglas difusas
+                    </p>
+                    
+                    <div class="input-grid">
+                        <div class="input-group">
+                            <label for="duracion">📅 Duración de Suscripción (meses):</label>
+                            <input type="number" id="duracion" min="0" max="60" value="12" placeholder="0-60">
+                            <small style="color: #666; display: block; margin-top: 5px;">Short: 0-12, Medium: 6-30, Long: 24-60</small>
+                        </div>
+
+                        <div class="input-group">
+                            <label for="tipo">🎫 Tipo de Suscripción:</label>
+                            <select id="tipo">
+                                <option value="basic">Basic (Básico)</option>
+                                <option value="standard">Standard (Estándar)</option>
+                                <option value="premium">Premium</option>
+                            </select>
+                        </div>
+
+                        <div class="input-group">
+                            <label for="frecuencia">🔥 Frecuencia de Uso (usos/mes):</label>
+                            <input type="number" id="frecuencia" min="0" max="100" value="50" placeholder="0-100">
+                            <small style="color: #666; display: block; margin-top: 5px;">Low: 0-30, Medium: 20-70, High: 60-100</small>
+                        </div>
+                    </div>
+
+                    <button class="btn" onclick="calcularFidelizacion()">Calcular Nivel de Fidelización</button>
+
+                    <div class="result-box" id="resultBox">
+                        <h4>Resultado del Análisis Difuso</h4>
+                        <div id="resultText"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Definición de las 27 reglas difusas
+        const fuzzyRules = [
+            {inputs: ['short', 'basic', 'lowf'], output: 'low', range: [0, 0, 20, 40]},
+            {inputs: ['short', 'standard', 'lowf'], output: 'low', range: [0, 0, 20, 40]},
+            {inputs: ['short', 'premium', 'lowf'], output: 'low', range: [0, 0, 20, 40]},
+            {inputs: ['medium', 'basic', 'lowf'], output: 'low', range: [0, 0, 20, 40]},
+            {inputs: ['medium', 'standard', 'lowf'], output: 'low', range: [0, 0, 20, 40]},
+            {inputs: ['medium', 'premium', 'lowf'], output: 'low', range: [0, 0, 20, 40]},
+            {inputs: ['long', 'basic', 'lowf'], output: 'medium', range: [30, 50, 70]},
+            {inputs: ['long', 'standard', 'lowf'], output: 'medium', range: [30, 50, 70]},
+            {inputs: ['long', 'premium', 'lowf'], output: 'medium', range: [30, 50, 70]},
+            {inputs: ['short', 'basic', 'medf'], output: 'low', range: [0, 0, 20, 40]},
+            {inputs: ['short', 'standard', 'medf'], output: 'low', range: [0, 0, 20, 40]},
+            {inputs: ['short', 'premium', 'medf'], output: 'low', range: [0, 0, 20, 40]},
+            {inputs: ['medium', 'basic', 'medf'], output: 'medium', range: [30, 50, 70]},
+            {inputs: ['medium', 'standard', 'medf'], output: 'medium', range: [30, 50, 70]},
+            {inputs: ['medium', 'premium', 'medf'], output: 'medium', range: [30, 50, 70]},
+            {inputs: ['long', 'basic', 'medf'], output: 'medium', range: [30, 50, 70]},
+            {inputs: ['long', 'standard', 'medf'], output: 'medium', range: [30, 50, 70]},
+            {inputs: ['long', 'premium', 'medf'], output: 'medium', range: [30, 50, 70]},
+            {inputs: ['short', 'basic', 'highf'], output: 'medium', range: [30, 50, 70]},
+            {inputs: ['short', 'standard', 'highf'], output: 'medium', range: [30, 50, 70]},
+            {inputs: ['short', 'premium', 'highf'], output: 'medium', range: [30, 50, 70]},
+            {inputs: ['medium', 'basic', 'highf'], output: 'high', range: [60, 75, 100, 100]},
+            {inputs: ['medium', 'standard', 'highf'], output: 'high', range: [60, 75, 100, 100]},
+            {inputs: ['medium', 'premium', 'highf'], output: 'high', range: [60, 75, 100, 100]},
+            {inputs: ['long', 'basic', 'highf'], output: 'high', range: [60, 75, 100, 100]},
+            {inputs: ['long', 'standard', 'highf'], output: 'high', range: [60, 75, 100, 100]},
+            {inputs: ['long', 'premium', 'highf'], output: 'high', range: [60, 75, 100, 100]}
+        ];
+
+        const translations = {
+            short: 'Corto', medium: 'Medio', long: 'Largo',
+            basic: 'Básico', standard: 'Estándar', premium: 'Premium',
+            lowf: 'Baja', medf: 'Media', highf: 'Alta',
+            low: 'BAJA', high: 'ALTA'
+        };
+
+        // Generar todas las reglas
+        function generateRules() {
+            const grid = document.getElementById('rulesGrid');
+            grid.innerHTML = '';
+            
+            fuzzyRules.forEach((rule, index) => {
+                const card = document.createElement('div');
+                card.className = `rule-card ${rule.output}`;
+                card.dataset.output = rule.output;
+                
+                const [dur, type, freq] = rule.inputs;
+                card.innerHTML = `
+                    <div class="rule-number">REGLA #${index + 1}</div>
+                    <div class="rule-if">
+                        <strong>SI</strong> Duración = <em>${translations[dur]}</em><br>
+                        <strong>Y</strong> Tipo = <em>${translations[type]}</em><br>
+                        <strong>Y</strong> Frecuencia = <em>${translations[freq]}</em>
+                    </div>
+                    <div class="rule-then">
+                        <strong>ENTONCES</strong> Fidelización = ${translations[rule.output]}
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        // Filtrar reglas
+        function filterRules(filter) {
+            const cards = document.querySelectorAll('.rule-card');
+            const buttons = document.querySelectorAll('.filter-btn');
+            
+            buttons.forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            cards.forEach(card => {
+                if (filter === 'all' || card.dataset.output === filter) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+
+        // Cambiar entre tabs
+        function showTab(tabName) {
+            const tabs = document.querySelectorAll('.tab');
+            const contents = document.querySelectorAll('.tab-content');
+            
+            tabs.forEach(tab => tab.classList.remove('active'));
+            contents.forEach(content => content.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            document.getElementById(tabName).classList.add('active');
+        }
+
+        // Funciones de membresía
+        function membershipTriangular(x, a, b, c) {
+            if (x <= a || x >= c) return 0;
+            if (x === b) return 1;
+            if (x < b) return (x - a) / (b - a);
+            return (c - x) / (c - b);
+        }
+
+        function membershipTrapezoidal(x, a, b, c, d) {
+            if (x <= a || x >= d) return 0;
+            if (x >= b && x <= c) return 1;
+            if (x < b) return (x - a) / (b - a);
+            return (d - x) / (d - c);
+        }
+
+        // Fuzzificación
+        function fuzzify(duracion, tipo, frecuencia) {
+            const fuzzyInputs = {};
+            
+            // Duración
+            fuzzyInputs.short = membershipTrapezoidal(duracion, 0, 0, 6, 12);
+            fuzzyInputs.medium = membershipTriangular(duracion, 6, 18, 30);
+            fuzzyInputs.long = membershipTrapezoidal(duracion, 24, 36, 60, 60);
+            
+            // Tipo (valores discretos: basic=1, standard=2, premium=3)
+            const tipoMap = {basic: 1, standard: 2, premium: 3};
+            const tipoVal = tipoMap[tipo];
+            fuzzyInputs.basic = tipoVal === 1 ? 1 : 0;
+            fuzzyInputs.standard = tipoVal === 2 ? 1 : 0;
+            fuzzyInputs.premium = tipoVal === 3 ? 1 : 0;
+            
+            // Frecuencia
+            fuzzyInputs.lowf = membershipTrapezoidal(frecuencia, 0, 0, 15, 30);
+            fuzzyInputs.medf = membershipTriangular(frecuencia, 20, 45, 70);
+            fuzzyInputs.highf = membershipTrapezoidal(frecuencia, 60, 80, 100, 100);
+            
+            return fuzzyInputs;
+        }
+
+        // Inferencia y defuzzificación
+        function calcularFidelizacion() {
+            const duracion = parseFloat(document.getElementById('duracion').value);
+            const tipo = document.getElementById('tipo').value;
+            const frecuencia = parseFloat(document.getElementById('frecuencia').value);
+            
+            if (isNaN(duracion) || isNaN(frecuencia)) {
+                alert('Por favor, ingresa valores numéricos válidos');
+                return;
+            }
+
+            // Fuzzificación
+            const fuzzyInputs = fuzzify(duracion, tipo, frecuencia);
+            
+            // Inferencia - evaluar todas las reglas
+            let activatedRules = [];
+            fuzzyRules.forEach((rule, index) => {
+                const [dur, typ, freq] = rule.inputs;
+                const strength = Math.min(
+                    fuzzyInputs[dur],
+                    fuzzyInputs[typ],
+                    fuzzyInputs[freq]
+                );
+                
+                if (strength > 0) {
+                    activatedRules.push({
+                        ruleNum: index + 1,
+                        strength: strength,
+                        output: rule.output,
+                        range: rule.range,
+                        inputs: rule.inputs
+                    });
+                }
+            });
+
+            // Defuzzificación usando centroide
+            let numerator = 0;
+            let denominator = 0;
+            
+            activatedRules.forEach(rule => {
+                let centroid;
+                if (rule.range.length === 3) {
+                    // Triangular
+                    centroid = rule.range[1];
+                } else {
+                    // Trapezoidal
+                    centroid = (rule.range[1] + rule.range[2]) / 2;
+                }
+                numerator += rule.strength * centroid;
+                denominator += rule.strength;
+            });
+            
+            const fidelizacion = denominator > 0 ? Math.round(numerator / denominator) : 0;
+
+            // Clasificación del resultado
+            let nivelLabel = '';
+            let colorBarra = '';
+            let emoji = '';
+            let recomendacion = '';
+            
+            if (fidelizacion < 40) {
+                nivelLabel = 'BAJA - RIESGO ALTO';
+                colorBarra = '#e74c3c';
+                emoji = '⚠️';
+                recomendacion = 'Cliente en riesgo de abandono. Requiere atención inmediata con estrategias de retención personalizadas.';
+            } else if (fidelizacion < 70) {
+                nivelLabel = 'MEDIA - POTENCIAL';
+                colorBarra = '#f39c12';
+                emoji = '⚡';
+                recomendacion = 'Cliente con potencial de crecimiento. Ofrecer incentivos para incrementar engagement y upgrade de plan.';
+            } else {
+                nivelLabel = 'ALTA - EXCELENTE';
+                colorBarra = '#27ae60';
+                emoji = '⭐';
+                recomendacion = 'Cliente leal y comprometido. Mantener satisfacción con beneficios VIP y programa de referidos.';
+            }
+
+            // Determinar categorías fuzzy de entrada
+            let durLabel = duracion < 12 ? 'Corto' : duracion < 30 ? 'Medio' : 'Largo';
+            let freqLabel = frecuencia < 30 ? 'Baja' : frecuencia < 70 ? 'Media' : 'Alta';
+
+            // Mostrar resultados
+            const resultBox = document.getElementById('resultBox');
+            const resultText = document.getElementById('resultText');
+
+            resultText.innerHTML = `
+                <div style="text-align: center; margin-bottom: 25px;">
+                    <div style="font-size: 3em; margin-bottom: 10px;">${emoji}</div>
+                    <div style="font-size: 2em; font-weight: 700; color: ${colorBarra}; margin-bottom: 10px;">
+                        ${fidelizacion}/100
+                    </div>
+                    <div style="font-size: 1.3em; color: ${colorBarra}; font-weight: 600;">
+                        ${nivelLabel}
+                    </div>
+                </div>
+
+                <div style="background: #f0f0f0; height: 40px; border-radius: 20px; overflow: hidden; margin: 25px 0;">
+                    <div style="width: ${fidelizacion}%; height: 100%; background: ${colorBarra}; transition: width 1.5s ease; display: flex; align-items: center; justify-content: center; color: white; font-weight: 600;">
+                        ${fidelizacion}%
+                    </div>
+                </div>
+
+                <div style="background: #f9f9f9; padding: 20px; border-radius: 10px; margin: 20px 0; border-left: 4px solid ${colorBarra};">
+                    <h5 style="color: #333; margin-bottom: 15px; font-size: 1.2em;">📊 Análisis de Variables de Entrada:</h5>
+                    <div style="font-size: 0.95em; color: #555; line-height: 2;">
+                        • <strong>Duración:</strong> ${duracion} meses → <span style="color: ${colorBarra}; font-weight: 600;">${durLabel}</span><br>
+                        • <strong>Tipo de Plan:</strong> <span style="color: ${colorBarra}; font-weight: 600;">${translations[tipo]}</span><br>
+                        • <strong>Frecuencia de Uso:</strong> ${frecuencia} usos/mes → <span style="color: ${colorBarra}; font-weight: 600;">${freqLabel}</span>
+                    </div>
+                </div>
+
+                <div style="background: #fff3cd; padding: 20px; border-radius: 10px; border-left: 4px solid #ffc107;">
+                    <h5 style="color: #856404; margin-bottom: 10px; font-size: 1.2em;">🎯 Reglas Activadas:</h5>
+                    <div style="font-size: 0.9em; color: #856404;">
+                        ${activatedRules.length} de 27 reglas difusas fueron activadas en este análisis
+                    </div>
+                    <div style="margin-top: 15px; max-height: 150px; overflow-y: auto;">
+                        ${activatedRules.slice(0, 5).map(r => `
+                            <div style="background: white; padding: 8px; margin: 5px 0; border-radius: 5px; font-size: 0.85em;">
+                                <strong>Regla #${r.ruleNum}</strong> (Fuerza: ${(r.strength * 100).toFixed(1)}%) → ${translations[r.output]}
+                            </div>
+                        `).join('')}
+                        ${activatedRules.length > 5 ? `<div style="text-align: center; color: #666; font-size: 0.85em; margin-top: 10px;">... y ${activatedRules.length - 5} reglas más</div>` : ''}
+                    </div>
+                </div>
+
+                <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 20px; border-radius: 10px; color: white; margin-top: 20px;">
+                    <h5 style="margin-bottom: 10px; font-size: 1.2em;">💡 Recomendación Estratégica:</h5>
+                    <p style="line-height: 1.6; font-size: 0.95em;">${recomendacion}</p>
+                </div>
+            `;
+
+            resultBox.classList.add('show');
+            resultBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        // Inicializar al cargar
+        document.addEventListener('DOMContentLoaded', function() {
+            generateRules();
+            
+            // Permitir Enter para calcular
+            document.getElementById('duracion').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') calcularFidelizacion();
+            });
+            document.getElementById('frecuencia').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') calcularFidelizacion();
+            });
+        });
+    </script>
+</body>
+</html>

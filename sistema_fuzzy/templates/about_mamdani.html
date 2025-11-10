@@ -1,0 +1,908 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Modelo de Inferencia Mamdani - {{ block.super }}{% endblock %}
+
+{% block nav_title %}Modelo Mamdani - Sistema de Lógica Difusa{% endblock %}
+
+{% block extra_css %}
+{{ block.super }}
+<style>
+    .hero-section {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 80px 0;
+        margin-bottom: 50px;
+        margin-top: -2rem;
+    }
+    
+    .hero-title {
+        font-size: 3.5rem;
+        font-weight: 700;
+        margin-bottom: 20px;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    }
+    
+    .hero-subtitle {
+        font-size: 1.3rem;
+        font-weight: 300;
+        opacity: 0.9;
+    }
+    
+    .section-title {
+        color: #333;
+        font-weight: 600;
+        margin-bottom: 30px;
+        position: relative;
+        padding-bottom: 10px;
+    }
+    
+    .section-title::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 50px;
+        height: 3px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 2px;
+    }
+    
+    .feature-card {
+        border: none;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+        height: 100%;
+        border-radius: 15px;
+        background: rgba(255, 255, 255, 0.95);
+    }
+    
+    .feature-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+    }
+    
+    .feature-icon {
+        width: 80px;
+        height: 80px;
+        margin: 0 auto 20px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        color: white;
+    }
+    
+    .process-step {
+        background: rgba(248, 249, 250, 0.95);
+        border-radius: 15px;
+        padding: 30px;
+        margin-bottom: 20px;
+        border-left: 5px solid #667eea;
+        transition: all 0.3s ease;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .process-step::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(45deg, transparent 30%, rgba(102, 126, 234, 0.05) 50%, transparent 70%);
+        transform: translateX(-100%);
+        transition: transform 0.6s;
+    }
+    
+    .process-step:hover::before {
+        transform: translateX(100%);
+    }
+    
+    .process-step:hover {
+        background: rgba(227, 242, 253, 0.95);
+        transform: translateX(10px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.12);
+    }
+    
+    .step-number {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        margin-bottom: 15px;
+    }
+    
+    .process-details {
+        margin-top: 15px;
+        padding: 15px;
+        background: rgba(255, 255, 255, 0.7);
+        border-radius: 8px;
+        border-left: 3px solid #667eea;
+    }
+    
+    .advantages-list {
+        list-style: none;
+        padding: 0;
+    }
+    
+    .advantages-list li {
+        padding: 20px;
+        border-bottom: 1px solid #eee;
+        position: relative;
+        padding-left: 60px;
+        transition: all 0.3s ease;
+        border-radius: 8px;
+        margin-bottom: 10px;
+    }
+    
+    .advantages-list li:hover {
+        background: rgba(102, 126, 234, 0.05);
+        transform: translateX(5px);
+    }
+    
+    .advantages-list li::before {
+        content: '✓';
+        position: absolute;
+        left: 15px;
+        top: 20px;
+        background: linear-gradient(135deg, #28a745, #20c997);
+        color: white;
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 16px;
+        font-weight: bold;
+    }
+    
+    .applications-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+        margin-top: 30px;
+    }
+    
+    .application-item {
+        background: rgba(255, 255, 255, 0.95);
+        padding: 25px;
+        border-radius: 15px;
+        box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        text-align: center;
+        transition: all 0.3s ease;
+    }
+    
+    .application-item:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 35px rgba(0,0,0,0.15);
+    }
+    
+    .timeline {
+        position: relative;
+        padding-left: 30px;
+    }
+    
+    .timeline::before {
+        content: '';
+        position: absolute;
+        left: 15px;
+        top: 0;
+        bottom: 0;
+        width: 2px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+    
+    .timeline-item {
+        position: relative;
+        margin-bottom: 30px;
+    }
+    
+    .timeline-item::before {
+        content: '';
+        position: absolute;
+        left: -37px;
+        top: 10px;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: #667eea;
+        border: 3px solid white;
+    }
+    
+    .content-card {
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 20px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        padding: 2rem;
+        margin-bottom: 2rem;
+    }
+    
+    .example-card {
+        background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+        border: none;
+        border-radius: 20px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+        color: white;
+        overflow: hidden;
+        position: relative;
+    }
+    
+    .example-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M 10 0 L 0 0 0 10" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="0.5"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>');
+        opacity: 0.3;
+    }
+    
+    .fuzzy-visualization {
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 15px;
+        padding: 20px;
+        margin: 20px 0;
+    }
+    
+    .fuzzy-rule {
+        background: rgba(255, 255, 255, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 10px;
+        padding: 15px;
+        margin: 10px 0;
+        font-family: 'Courier New', monospace;
+        font-size: 0.9rem;
+    }
+    
+    .fuzzy-variable {
+        display: inline-block;
+        background: rgba(255, 255, 255, 0.2);
+        padding: 5px 10px;
+        border-radius: 20px;
+        margin: 2px;
+        font-size: 0.8rem;
+    }
+    
+    .inference-steps {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+        margin-top: 20px;
+    }
+    
+    .inference-step {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 10px;
+        padding: 15px;
+        text-align: center;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    
+    .step-icon {
+        font-size: 2rem;
+        margin-bottom: 10px;
+        display: block;
+    }
+
+    /* Asegurar visibilidad inicial */
+    .content-card, .process-step, .feature-card {
+        opacity: 1;
+        transform: none;
+    }
+
+    @media (max-width: 768px) {
+        .hero-title {
+            font-size: 2.5rem;
+        }
+        
+        .hero-section {
+            padding: 50px 0;
+        }
+        
+        .applications-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block page_header %}
+<div class="hero-section">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-8">
+                <h1 class="hero-title">Modelo de Inferencia Mamdani</h1>
+                <p class="hero-subtitle">Sistema inteligente de toma de decisiones basado en lógica difusa</p>
+            </div>
+            <div class="col-lg-4 text-center">
+                <div class="hero-icon" style="font-size: 6rem; opacity: 0.3;">
+                    🧠
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block sidebar %}
+<div class="sidebar">
+    <h5 class="mb-3">
+        <i class="fas fa-book me-2"></i>
+        Contenido
+    </h5>
+    
+    <div class="list-group list-group-flush">
+        <a href="#introduccion" class="list-group-item list-group-item-action">
+            <i class="fas fa-info-circle me-2"></i>Introducción
+        </a>
+        <a href="#caracteristicas" class="list-group-item list-group-item-action">
+            <i class="fas fa-star me-2"></i>Características
+        </a>
+        <a href="#proceso" class="list-group-item list-group-item-action">
+            <i class="fas fa-cogs me-2"></i>Proceso
+        </a>
+        <a href="#ventajas" class="list-group-item list-group-item-action">
+            <i class="fas fa-thumbs-up me-2"></i>Ventajas
+        </a>
+        <a href="#aplicaciones" class="list-group-item list-group-item-action">
+            <i class="fas fa-rocket me-2"></i>Aplicaciones
+        </a>
+    </div>
+
+    <div class="mt-4">
+        <h6 class="mb-3">
+            <i class="fas fa-chart-bar me-2"></i>
+            Información
+        </h6>
+        <div class="stats-card">
+            <div class="stats-number">1975</div>
+            <div class="stats-label">Año de Creación</div>
+        </div>
+        <div class="stats-card">
+            <div class="stats-number">4</div>
+            <div class="stats-label">Etapas del Proceso</div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block main_content %}
+<!-- Introducción -->
+<div id="introduccion" class="content-card">
+    <h2 class="section-title">¿Qué es el Modelo Mamdani?</h2>
+    <p class="lead">
+        El modelo de inferencia difusa de Mamdani, desarrollado por Ebrahim Mamdani en 1975, 
+        es uno de los métodos más utilizados y reconocidos en el campo de la lógica difusa para 
+        sistemas de control y toma de decisiones automatizada.
+    </p>
+</div>
+
+<!-- Características Principales -->
+<div id="caracteristicas" class="content-card">
+    <h2 class="section-title">Características Principales</h2>
+    <div class="row">
+        <div class="col-md-4 mb-4">
+            <div class="card feature-card">
+                <div class="card-body text-center">
+                    <div class="feature-icon">
+                        📊
+                    </div>
+                    <h5 class="card-title">Funciones de Pertenencia</h5>
+                    <p class="card-text">
+                        Utiliza funciones matemáticas para definir el grado de pertenencia 
+                        de elementos a conjuntos difusos, permitiendo manejar incertidumbre.
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card feature-card">
+                <div class="card-body text-center">
+                    <div class="feature-icon">
+                        🔀
+                    </div>
+                    <h5 class="card-title">Reglas Lingüísticas</h5>
+                    <p class="card-text">
+                        Emplea reglas del tipo "SI-ENTONCES" expresadas en lenguaje natural, 
+                        facilitando la comprensión y el diseño del sistema.
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card feature-card">
+                <div class="card-body text-center">
+                    <div class="feature-icon">
+                        ⚙️
+                    </div>
+                    <h5 class="card-title">Defuzzificación</h5>
+                    <p class="card-text">
+                        Convierte las salidas difusas en valores precisos mediante métodos 
+                        como el centroide, facilitando la implementación práctica.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Proceso de Inferencia -->
+<div id="proceso" class="content-card">
+    <h2 class="section-title">Proceso de Inferencia Mamdani</h2>
+    <div class="row">
+        <div class="col-lg-6">
+            <div class="process-step">
+                <div class="step-number">1</div>
+                <h5><strong>Fuzzificación</strong></h5>
+                <p>
+                    Las entradas precisas (valores numéricos) se convierten en grados de 
+                    pertenencia a conjuntos difusos mediante las funciones de pertenencia definidas.
+                </p>
+                <div class="process-details">
+                    <strong>Métodos comunes:</strong>
+                    <ul class="mb-0 mt-2">
+                        <li>Funciones triangulares</li>
+                        <li>Funciones trapezoidales</li>
+                        <li>Funciones gaussianas</li>
+                        <li>Funciones sigmoidales</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="process-step">
+                <div class="step-number">2</div>
+                <h5><strong>Evaluación de Reglas</strong></h5>
+                <p>
+                    Se evalúan todas las reglas de inferencia utilizando operadores difusos 
+                    (AND, OR) para determinar el grado de activación de cada regla.
+                </p>
+                <div class="process-details">
+                    <strong>Operadores utilizados:</strong>
+                    <ul class="mb-0 mt-2">
+                        <li>AND (mínimo o producto)</li>
+                        <li>OR (máximo o suma algebraica)</li>
+                        <li>NOT (complemento)</li>
+                        <li>Implicación (mínimo o producto)</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="process-step">
+                <div class="step-number">3</div>
+                <h5><strong>Agregación</strong></h5>
+                <p>
+                    Los resultados de todas las reglas activadas se combinan para formar 
+                    una distribución de salida difusa única.
+                </p>
+                <div class="process-details">
+                    <strong>Técnicas de agregación:</strong>
+                    <ul class="mb-0 mt-2">
+                        <li>Máximo (max)</li>
+                        <li>Suma algebraica</li>
+                        <li>Suma probabilística</li>
+                        <li>Suma acotada</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="process-step">
+                <div class="step-number">4</div>
+                <h5><strong>Defuzzificación</strong></h5>
+                <p>
+                    La distribución difusa resultante se convierte en un valor numérico 
+                    preciso usando métodos como centroide o máximo.
+                </p>
+                <div class="process-details">
+                    <strong>Métodos de defuzzificación:</strong>
+                    <ul class="mb-0 mt-2">
+                        <li>Centro de gravedad (COG)</li>
+                        <li>Centro de área (COA)</li>
+                        <li>Media de máximos (MOM)</li>
+                        <li>Primer máximo (FOM)</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Ventajas -->
+<div id="ventajas" class="content-card">
+    <div class="row">
+        <div class="col-md-6">
+            <h2 class="section-title">Ventajas del Modelo Mamdani</h2>
+            <ul class="advantages-list">
+                <li>
+                    <strong>Intuitividad:</strong> Las reglas se expresan en lenguaje natural, facilitando su comprensión
+                    <div class="advantage-description">Permite que expertos sin conocimientos técnicos profundos puedan contribuir al diseño del sistema</div>
+                </li>
+                <li>
+                    <strong>Flexibilidad:</strong> Permite manejar información imprecisa y conocimiento experto
+                    <div class="advantage-description">Adaptable a diferentes dominios y capaz de incorporar conocimiento heurístico</div>
+                </li>
+                <li>
+                    <strong>Robustez:</strong> Funciona bien con datos incompletos o ruidosos
+                    <div class="advantage-description">Mantiene rendimiento estable ante variaciones en las entradas o falta de información</div>
+                </li>
+                <li>
+                    <strong>Interpretabilidad:</strong> El proceso de razonamiento es transparente y explicable
+                    <div class="advantage-description">Facilita la depuración, validación y aceptación por parte de usuarios finales</div>
+                </li>
+                <li>
+                    <strong>Versatilidad:</strong> Aplicable a diversos dominios y problemas
+                    <div class="advantage-description">Desde control industrial hasta diagnóstico médico y finanzas</div>
+                </li>
+                <li>
+                    <strong>Escalabilidad:</strong> Permite agregar nuevas reglas sin afectar las existentes
+                    <div class="advantage-description">Facilita el mantenimiento y evolución del sistema de conocimiento</div>
+                </li>
+                <li>
+                    <strong>Manejo de Incertidumbre:</strong> Trabaja efectivamente con información ambigua
+                    <div class="advantage-description">Ideal para situaciones donde la información exacta no está disponible</div>
+                </li>
+                <li>
+                    <strong>Integración de Múltiples Fuentes:</strong> Combina diferentes tipos de conocimiento
+                    <div class="advantage-description">Unifica conocimiento experto, datos históricos y modelos matemáticos</div>
+                </li>
+            </ul>
+        </div>
+        <div class="col-md-6">
+            <h2 class="section-title">Historia y Desarrollo</h2>
+            <div class="timeline">
+                <div class="timeline-item">
+                    <h6><strong>1965</strong></h6>
+                    <p>Lotfi Zadeh introduce la teoría de conjuntos difusos</p>
+                </div>
+                <div class="timeline-item">
+                    <h6><strong>1975</strong></h6>
+                    <p>Ebrahim Mamdani desarrolla el primer controlador difuso</p>
+                </div>
+                <div class="timeline-item">
+                    <h6><strong>1980s</strong></h6>
+                    <p>Expansión en aplicaciones industriales y de control</p>
+                </div>
+                <div class="timeline-item">
+                    <h6><strong>Actualidad</strong></h6>
+                    <p>Integración con IA moderna y sistemas inteligentes</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Aplicaciones -->
+<div id="aplicaciones" class="content-card">
+    <h2 class="section-title">Aplicaciones Principales</h2>
+    <div class="applications-grid">
+        <div class="application-item">
+            <h5>🏭 Control Industrial</h5>
+            <p>Sistemas de control de procesos manufactureros y automatización</p>
+        </div>
+        <div class="application-item">
+            <h5>🚗 Automoción</h5>
+            <p>Control de velocidad, frenado automático y sistemas de navegación</p>
+        </div>
+        <div class="application-item">
+            <h5>🏥 Diagnóstico Médico</h5>
+            <p>Sistemas de apoyo al diagnóstico y análisis de síntomas</p>
+        </div>
+        <div class="application-item">
+            <h5>💰 Finanzas</h5>
+            <p>Evaluación de riesgos y toma de decisiones de inversión</p>
+        </div>
+        <div class="application-item">
+            <h5>🌡️ Climatización</h5>
+            <p>Control inteligente de temperatura y humedad</p>
+        </div>
+        <div class="application-item">
+            <h5>🎮 Videojuegos</h5>
+            <p>Inteligencia artificial de personajes y comportamientos</p>
+        </div>
+    </div>
+</div>
+
+<!-- Comparación con otros modelos -->
+<div class="content-card">
+    <h2 class="section-title">Mamdani vs. Otros Modelos</h2>
+    <div class="table-responsive">
+        <table class="table table-striped table-hover">
+            <thead class="table-dark">
+                <tr>
+                    <th>Característica</th>
+                    <th>Mamdani</th>
+                    <th>Sugeno</th>
+                    <th>Tsukamoto</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>Salida</strong></td>
+                    <td>Conjuntos difusos</td>
+                    <td>Funciones lineales</td>
+                    <td>Funciones monótonas</td>
+                </tr>
+                <tr>
+                    <td><strong>Interpretabilidad</strong></td>
+                    <td>Alta</td>
+                    <td>Media</td>
+                    <td>Media</td>
+                </tr>
+                <tr>
+                    <td><strong>Eficiencia Computacional</strong></td>
+                    <td>Media</td>
+                    <td>Alta</td>
+                    <td>Alta</td>
+                </tr>
+                <tr>
+                    <td><strong>Flexibilidad</strong></td>
+                    <td>Alta</td>
+                    <td>Media</td>
+                    <td>Baja</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Ejemplo Práctico -->
+<div class="example-card">
+    <div class="card-header">
+        <h3 class="mb-0">
+            <i class="fas fa-microchip me-2"></i>
+            Sistema Inteligente de Control de Aire Acondicionado
+        </h3>
+        <p class="mb-0 mt-2 opacity-75">Implementación práctica del modelo Mamdani en tiempo real</p>
+    </div>
+    <div class="card-body">
+        <div class="fuzzy-visualization">
+            <h5 class="text-primary mb-3">🏢 Escenario: Oficina Inteligente</h5>
+            <p class="mb-3">
+                Sistema que controla automáticamente la climatización de una oficina basándose en 
+                múltiples factores ambientales y de ocupación para optimizar confort y eficiencia energética.
+            </p>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6">
+                <h5 class="mb-3">📊 Variables de Entrada:</h5>
+                <div class="mb-3">
+                    <strong>Temperatura Ambiente:</strong><br>
+                    <span class="fuzzy-variable">Muy Fría (&lt;16°C)</span>
+                    <span class="fuzzy-variable">Fría (16-20°C)</span>
+                    <span class="fuzzy-variable">Cómoda (20-24°C)</span>
+                    <span class="fuzzy-variable">Caliente (24-28°C)</span>
+                    <span class="fuzzy-variable">Muy Caliente (&gt;28°C)</span>
+                </div>
+                
+                <div class="mb-3">
+                    <strong>Humedad Relativa:</strong><br>
+                    <span class="fuzzy-variable">Muy Baja (&lt;30%)</span>
+                    <span class="fuzzy-variable">Baja (30-45%)</span>
+                    <span class="fuzzy-variable">Normal (45-65%)</span>
+                    <span class="fuzzy-variable">Alta (65-80%)</span>
+                    <span class="fuzzy-variable">Muy Alta (&gt;80%)</span>
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <h5 class="mb-3">🎯 Variables de Salida:</h5>
+                <div class="mb-3">
+                    <strong>Potencia del Aire Acondicionado:</strong><br>
+                    <span class="fuzzy-variable">Apagado (0%)</span>
+                    <span class="fuzzy-variable">Muy Bajo (1-20%)</span>
+                    <span class="fuzzy-variable">Bajo (21-40%)</span>
+                    <span class="fuzzy-variable">Medio (41-60%)</span>
+                    <span class="fuzzy-variable">Alto (61-80%)</span>
+                    <span class="fuzzy-variable">Máximo (81-100%)</span>
+                </div>
+
+                <div class="mb-3">
+                    <strong>Velocidad del Ventilador:</strong><br>
+                    <span class="fuzzy-variable">Parado</span>
+                    <span class="fuzzy-variable">Muy Lento</span>
+                    <span class="fuzzy-variable">Lento</span>
+                    <span class="fuzzy-variable">Medio</span>
+                    <span class="fuzzy-variable">Rápido</span>
+                    <span class="fuzzy-variable">Muy Rápido</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Reglas de Inferencia -->
+        <h5 class="mb-3 mt-4">📋 Reglas de Inferencia Inteligentes:</h5>
+        <div class="row">
+            <div class="col-md-6">
+                <div class="fuzzy-rule">
+                    <strong>Regla 1 - Confort Estándar:</strong><br>
+                    SI Temperatura es <span class="text-warning">Caliente</span> Y 
+                    Ocupación es <span class="text-info">Moderada</span><br>
+                    ENTONCES Potencia es <span class="text-danger">Alto</span> Y 
+                    Ventilador es <span class="text-primary">Medio</span>
+                </div>
+                
+                <div class="fuzzy-rule">
+                    <strong>Regla 2 - Ahorro Energético:</strong><br>
+                    SI Temperatura es <span class="text-info">Cómoda</span> Y 
+                    Ocupación es <span class="text-secondary">Vacía</span><br>
+                    ENTONCES Potencia es <span class="text-success">Muy Bajo</span> Y 
+                    Modo es <span class="text-warning">Eco</span>
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="fuzzy-rule">
+                    <strong>Regla 3 - Condiciones Extremas:</strong><br>
+                    SI Temperatura es <span class="text-danger">Muy Caliente</span> Y 
+                    Humedad es <span class="text-warning">Alta</span><br>
+                    ENTONCES Potencia es <span class="text-danger">Máximo</span> Y 
+                    Ventilador es <span class="text-danger">Muy Rápido</span>
+                </div>
+
+                <div class="fuzzy-rule">
+                    <strong>Regla 4 - Horario Nocturno:</strong><br>
+                    SI Hora es <span class="text-dark">Madrugada</span> Y 
+                    Ocupación es <span class="text-info">Poca</span><br>
+                    ENTONCES Potencia es <span class="text-info">Bajo</span> Y 
+                    Ventilador es <span class="text-success">Lento</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Resultado Final -->
+        <div class="fuzzy-visualization mt-4">
+            <h5 class="text-success mb-3">✅ Resultado del Sistema:</h5>
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="text-center p-3 bg-light rounded">
+                        <h3 class="text-primary">72%</h3>
+                        <p class="mb-0">Potencia AC</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="text-center p-3 bg-light rounded">
+                        <h3 class="text-info">Nivel 4</h3>
+                        <p class="mb-0">Velocidad Ventilador</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="text-center p-3 bg-light rounded">
+                        <h3 class="text-success">Confort</h3>
+                        <p class="mb-0">Modo Operación</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Navegación -->
+<div class="content-card text-center">
+    <a href="{% url 'dashboard' %}" class="btn btn-primary btn-lg me-3">
+        <i class="fas fa-home me-2"></i>Volver al Dashboard
+    </a>
+    <a href="{% url 'membership_functions' %}" class="btn btn-outline-primary btn-lg">
+        <i class="fas fa-wave-square me-2"></i>Ver Funciones de Pertenencia
+    </a>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Función mejorada para detectar si un elemento está visible
+        function isElementInViewport(el) {
+            const rect = el.getBoundingClientRect();
+            const windowHeight = window.innerHeight || document.documentElement.clientHeight;
+            return (rect.top <= windowHeight * 0.8 && rect.bottom >= windowHeight * 0.2);
+        }
+        
+        // Función para animar elementos
+        function animateElements() {
+            const elements = document.querySelectorAll('.feature-card, .process-step, .application-item, .content-card');
+            elements.forEach(function(element) {
+                if (isElementInViewport(element)) {
+                    element.style.opacity = '1';
+                    element.style.transform = 'translateY(0)';
+                }
+            });
+        }
+        
+        // Inicializar animaciones
+        setTimeout(animateElements, 100);
+        
+        // Configurar eventos
+        let ticking = false;
+        function handleScroll() {
+            if (!ticking) {
+                requestAnimationFrame(animateElements);
+                ticking = true;
+                setTimeout(() => { ticking = false; }, 100);
+            }
+        }
+        
+        window.addEventListener('scroll', handleScroll);
+        window.addEventListener('resize', handleScroll);
+        
+        // Smooth scroll para enlaces
+        document.querySelectorAll('.sidebar a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            });
+        });
+
+        // Animación de contadores
+        const counters = document.querySelectorAll('.stats-number');
+        counters.forEach(counter => {
+            const target = parseInt(counter.innerText);
+            if (!isNaN(target)) {
+                const increment = target / 50;
+                let current = 0;
+                
+                const timer = setInterval(() => {
+                    current += increment;
+                    counter.innerText = Math.floor(current);
+                    
+                    if (current >= target) {
+                        counter.innerText = target;
+                        clearInterval(timer);
+                    }
+                }, 40);
+            }
+        });
+
+        // Efecto de partículas
+        function createParticles() {
+            const exampleCard = document.querySelector('.example-card');
+            if (!exampleCard) return;
+
+            for (let i = 0; i < 20; i++) {
+                const particle = document.createElement('div');
+                particle.style.position = 'absolute';
+                particle.style.width = '4px';
+                particle.style.height = '4px';
+                particle.style.background = 'rgba(255, 255, 255, 0.3)';
+                particle.style.borderRadius = '50%';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.top = Math.random() * 100 + '%';
+                particle.style.animation = `float ${3 + Math.random() * 4}s ease-in-out infinite`;
+                particle.style.animationDelay = Math.random() * 2 + 's';
+                particle.style.zIndex = '0';
+                exampleCard.appendChild(particle);
+            }
+        }
+
+        // Agregar estilos para animaciones
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes float {
+                0%, 100% { transform: translateY(0px) rotate(0deg); opacity: 0.3; }
+                50% { transform: translateY(-20px) rotate(180deg); opacity: 0.8; }
+            }
+        `;
+        document.head.appendChild(style);
+
+        // Iniciar efectos
+        createParticles();
+    });
+</script>
+{% endblock %}
