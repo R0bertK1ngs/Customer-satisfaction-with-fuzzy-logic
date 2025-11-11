@@ -590,9 +590,9 @@
                     <div class="variable-card">
                         <h4>📅 Duración (Meses)</h4>
                         <ul>
-                            <li><strong>Short (Corto):</strong> 0-12 meses</li>
-                            <li><strong>Medium (Medio):</strong> 6-30 meses</li>
-                            <li><strong>Long (Largo):</strong> 24-60 meses</li>
+                            <li><strong>Short (Corto):</strong> trapmf(0, 0, 6, 12)</li>
+                            <li><strong>Medium (Medio):</strong> trimf(6, 18, 30)</li>
+                            <li><strong>Long (Largo):</strong> trapmf(18, 24, 36, 36)</li>
                         </ul>
                         <p style="margin-top: 15px; font-size: 0.9em; opacity: 0.9;">
                             Mide el tiempo de permanencia del cliente en el servicio
@@ -614,9 +614,9 @@
                     <div class="variable-card">
                         <h4>🔥 Frecuencia de Uso</h4>
                         <ul>
-                            <li><strong>Low (Baja):</strong> 0-30 usos/mes</li>
-                            <li><strong>Medium (Media):</strong> 20-70 usos/mes</li>
-                            <li><strong>High (Alta):</strong> 60-100 usos/mes</li>
+                            <li><strong>Low (Baja):</strong> trapmf(0, 0, 5, 10)</li>
+                            <li><strong>Medium (Media):</strong> trimf(5, 15, 25)</li>
+                            <li><strong>High (Alta):</strong> trapmf(20, 30, 50, 50)</li>
                         </ul>
                         <p style="margin-top: 15px; font-size: 0.9em; opacity: 0.9;">
                             Nivel de interacción del cliente con el servicio
@@ -628,15 +628,15 @@
                     <h3 style="color: #667eea; text-align: center; margin-bottom: 20px;">Variable de Salida: Nivel de Fidelización</h3>
                     <div class="chart-bars" style="max-width: 600px; margin: 0 auto;">
                         <div class="bar-item">
-                            <span class="bar-label">Bajo (0-40)</span>
+                             <span class="bar-label">Bajo (trapmf 0,0,25,40)</span>
                             <div class="bar" style="width: 40%; background: linear-gradient(90deg, #e74c3c, #c0392b);"></div>
                         </div>
                         <div class="bar-item">
-                            <span class="bar-label">Medio (30-70)</span>
+                            <span class="bar-label">Medio (trimf 30,50,70)</span>
                             <div class="bar" style="width: 70%; background: linear-gradient(90deg, #f39c12, #e67e22);"></div>
                         </div>
                         <div class="bar-item">
-                            <span class="bar-label">Alto (60-100)</span>
+                            <span class="bar-label">Alto (trapmf 60,75,100,100)</span>
                             <div class="bar" style="width: 100%; background: linear-gradient(90deg, #27ae60, #229954);"></div>
                         </div>
                     </div>
@@ -691,7 +691,7 @@
                         <div class="input-group">
                             <label for="frecuencia">🔥 Frecuencia de Uso (usos/mes):</label>
                             <input type="number" id="frecuencia" min="0" max="100" value="50" placeholder="0-100">
-                            <small style="color: #666; display: block; margin-top: 5px;">Low: 0-30, Medium: 20-70, High: 60-100</small>
+                            <small style="color: #666; display: block; margin-top: 5px;">Low: 0-10, Medium: 5-25, High: 20-50</small>
                         </div>
                     </div>
 
@@ -822,7 +822,7 @@
             // Duración
             fuzzyInputs.short = membershipTrapezoidal(duracion, 0, 0, 6, 12);
             fuzzyInputs.medium = membershipTriangular(duracion, 6, 18, 30);
-            fuzzyInputs.long = membershipTrapezoidal(duracion, 24, 36, 60, 60);
+            fuzzyInputs.long = membershipTrapezoidal(duracion, 18, 24, 36, 36);
             
             // Tipo (valores discretos: basic=1, standard=2, premium=3)
             const tipoMap = {basic: 1, standard: 2, premium: 3};
@@ -832,9 +832,9 @@
             fuzzyInputs.premium = tipoVal === 3 ? 1 : 0;
             
             // Frecuencia
-            fuzzyInputs.lowf = membershipTrapezoidal(frecuencia, 0, 0, 15, 30);
-            fuzzyInputs.medf = membershipTriangular(frecuencia, 20, 45, 70);
-            fuzzyInputs.highf = membershipTrapezoidal(frecuencia, 60, 80, 100, 100);
+            fuzzyInputs.lowf = membershipTrapezoidal(frecuencia, 0, 0, 5, 10);
+            fuzzyInputs.medf = membershipTriangular(frecuencia, 5, 15, 25);
+            fuzzyInputs.highf = membershipTrapezoidal(frecuencia, 20, 30, 50, 50);
             
             return fuzzyInputs;
         }
